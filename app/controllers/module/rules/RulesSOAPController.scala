@@ -2,19 +2,18 @@ package controllers.module.rules
 
 import javax.inject.Inject
 
+import controllers.InternationalInjectedController
 import models.repository.rules.RulesModel.Rule
-import play.api.mvc._
 import services.execution.RulesPythonExecutor.{BodyResult, ConditionResult, RequestDataType, RuleResultType}
 import services.rules.RulesService
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.xml.{Elem, Node}
 
 /**
  * Created by Sergey Tarkhanov on 6/3/2015.
  */
-class RulesSOAPController @Inject()(rules: RulesService) extends InjectedController {
+class RulesSOAPController @Inject()(rules: RulesService) extends InternationalInjectedController {
 
   def invoke(ruleSetFilter: String) = Action.async(parse.tolerantXml) {
     request =>
