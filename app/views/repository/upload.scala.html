@@ -1,0 +1,35 @@
+@(user: String,
+  fail: Option[String] = None,
+  log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+
+@inc.main(Messages("private-home-title")) {
+
+@inc.nav(Some(user), "repository")
+@inc.fail(fail)
+
+<div style="margin: 0 4%" class="headerTitle">
+    <h2 class="main"><a href="/private">@Messages("repository.title")</a> <span style="color: #909090;">/</span> @Messages("upload.title")</h2>
+</div>
+
+@if(log.isDefined) {
+<div class="panel">
+    <h2>Log</h2>
+    <div style="padding: 20px;">
+        <pre>@log</pre>
+    </div>
+</div>}
+
+    <div class="panel">
+
+        <h2>Configure</h2>
+        <form method="post" action="/private/uploadFiles" enctype="multipart/form-data">
+            <div style="padding: 1em;">
+                <input type="file" name="archive" />
+            </div>
+            <div class="actions">
+                <input type="submit" value="Submit" />
+            </div>
+        </form>
+    </div>
+
+}

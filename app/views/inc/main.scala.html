@@ -1,0 +1,24 @@
+@(title: String)(content: Html)(implicit messages: Messages)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>@title - @Messages("app.name")</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")" />
+        <link rel="shortcut icon" type="image/x-icon" href="@routes.Assets.at("images/favicon.ico")" />
+        <script src="@routes.Assets.at("javascripts/jquery-1.11.3.min.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/jquery.form.min.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/jquery.modal.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/RepositoryCreate.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/ChooseTypePopup.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/TypeEditor2.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/RuleSetEditor.js")" type="text/javascript"></script>
+    </head>
+    <body>
+        <div class="body">
+        @content
+        </div>
+        <div class="footer"></div>
+    </body>
+</html>

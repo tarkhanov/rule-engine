@@ -1,0 +1,65 @@
+@(user: String,
+  userSelection: controllers.SettingsController.SettingsUserList,
+  log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+
+@inc.main(Messages("settings.title")) {
+
+@inc.nav(Some(user), "settings")
+
+
+<div class="administrationHeaderTitle" style="margin: 0 4% 30px 4%">
+    <h2 class="main">@Messages("settings.title")</h2>
+</div>
+
+<div class="offset" style="padding-bottom: 40px;">
+    <div style="border: 4px solid #e0e0e0; border-width: 4px 0;">
+        <ul>
+            <li style="padding: 10px 40px; background-color: #e0e0e0; float: left;"><span style="color: #222; font-weight: bold;">@Messages("users.title")</span></li>
+        </ul>
+        <div style="clear: both;"></div>
+    </div>
+</div>
+
+<div class="panel" style="margin-top: 0px;">
+    <div class="header">
+        <table style="width: 100%">
+            <tr>
+                <td><h2>@Messages("user.list.title")</h2></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <div class="actions">
+        <input type="button" disabled="disabled"  value='@Messages("users.create.button")' />
+    </div>
+    <div class="table">
+        <table class="repo">
+            <tr>
+                <th>Login</th>
+                <!--th>Actions</th-->
+            </tr>
+            @for(item <- userSelection.users) {
+                @defining( if(item.uid == user) "background-color:#D8F7CF;" else "" ) { style =>
+                <tr style="@style">
+                    <td>@item.login</td>
+                    <!--td>
+                        <a href="/private/item/@item.uid/remove">Remove</a>
+                    </td-->
+                </tr>
+                }
+            }
+        </table>
+    </div>
+    <div class="actions">
+        <table style="width: 100%">
+            <tr>
+                <td></td>
+                <td style="text-align: right;">
+                    @inc.paging("/private/settings", userSelection.pageStart, userSelection.count, userSelection.pageSize, "users")
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+}

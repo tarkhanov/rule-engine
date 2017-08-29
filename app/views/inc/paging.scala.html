@@ -1,0 +1,21 @@
+@(url: String, pageStart: Int, recordCount: Int, pageSize: Int, name: String = "")
+    <div class="pageSize">
+        <select class="pageSizeSelect" data-link="@url?@{name}Length={size}">
+            @for(i <- Seq(10, 20, 50, 100, 200, 500)) {
+                @if(pageSize == i) {
+                    <option value="@i" selected="selected">@i</option>
+                } else {
+                    <option value="@i">@i</option>
+                }
+            }
+        </select>
+    </div>
+@defining( if(recordCount > pageSize) "multiple" else "single"  ) { pageCountStyle =>
+    <div class="paging @pageCountStyle">
+    @for(i <- 1 to recordCount by pageSize) {
+        @defining( if(i == pageStart) "current" else "" ) { style =>
+            <a class="page @style" href="@url?@{name}From=@i">@{((i-1) / pageSize) + 1}</a>
+        }
+    }
+    </div>
+}

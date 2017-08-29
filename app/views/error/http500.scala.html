@@ -1,0 +1,21 @@
+@(ex: Throwable,
+log: Option[String] = None)(implicit messages: Messages)
+
+@inc.main("Welcome to Play") {
+
+<div style="margin: 0 4%">
+<h2 class="main">500 Internal Server Error</h2>
+</div>
+
+<div class="panel">
+    <h2>Log</h2>
+    <div style="padding: 20px;">
+        @if(log.isDefined) {
+        <pre>@log</pre>
+        }
+        <pre>@ex</pre>
+    </div>
+</div>
+
+
+}

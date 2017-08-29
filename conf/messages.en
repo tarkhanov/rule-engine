@@ -1,0 +1,17 @@
+repository.title=Repository
+settings.title=Settings
+components.title=Components
+file.container.title=List of Components
+private-home-title=Components
+create...=Create...
+session.title=Updates
+session.submit.button=Apply
+session.cancel.button=Cancel
+users.title=Users
+user.list.title=List of Users
+users.create.button=Add User
+upload=Upload
+upload.title=Upload New Components
+statistics.title=Monitoring
+monitoring.cpu=CPU
+monitoring.memory=Memory

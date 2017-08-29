@@ -1,0 +1,142 @@
+@(user: String,
+  repo: models.repository.ListRepository,
+  recordPageStart: Int,
+  recordPageSize: Int,
+  allItemsFilter: Boolean,
+  fail: Option[String] = None,
+  log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+
+@inc.main(Messages("private-home-title")) {
+
+@inc.nav(Some(user), "repository")
+@inc.fail(fail)
+
+<div style="margin: 0 4%">
+<table class="header" style="width: 100%">
+<tr>
+    <td class="headerTitle">
+        <h2 class="main">@Messages("repository.title")</h2>
+    </td>
+    <td style="text-align: right;">
+        @inc.session(repo.session)
+    </td>
+</tr>
+</table>
+</div>
+
+<!--
+session(repo.session)
+-->
+
+@if(log.isDefined) {
+<div class="panel">
+    <h2>Log</h2>
+    <div style="padding: 20px;">
+        <pre>@log</pre>
+    </div>
+</div>}
+
+    <div class="panel">
+        <div class="header">
+            <table style="width: 100%">
+                <tr>
+                    <td><h2>@Messages("file.container.title")</h2></td>
+                    <td>
+
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="actions">
+            <table style="width: 100%">
+                <tr>
+                    <td>
+                        <input type="button" class="repositoryCreate" value='@Messages("create...")' style="margin-right: 10px;" />
+                        <a class="button repositoryUpload" href="/private/upload">@Messages("upload")</a>
+                    </td>
+                    <td style="text-align: right;">
+                        @***
+                        @if(allItemsFilter) {
+                        <a class="button pressed" href="/private?allRecords=false" style="margin-right: 10px;">All Components</a>
+                        } else {
+                        <a class="button" href="/private?allRecords=true" style="margin-right: 10px;">All Components</a>
+                        }
+                        ***@
+                        @inc.paging("/private", recordPageStart, repo.recordCount, recordPageSize, "repo")
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="table">
+            <table class="repo">
+                <tr>
+                    <th>Version ID</th>
+                    <th>Component ID</th>
+                    <th>Type</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            @for(item <- repo.records) {
+
+                @defining( if(item.actions.nonEmpty) "background-color:#D8F7CF;" else "" ) { style =>
+                <tr style="@style">
+                    <td style="color: firebrick; font-weight: 600;">@item.rec.id</td>
+                    <td style="color: firebrick; font-weight: 600;">@item.rec.seq</td>
+                    <td>@item.rec.kind</td>
+                    <td style="font-weight: 600;"><a href="/private/item/@item.rec.id/sequence">@item.rec.name</a></td>
+                    <td>
+                        @if(item.rec.active) {
+                            <span style="color: firebrick; font-weight: 600;">Active</span>
+                        }
+                        @if(item.modifiedBy.nonEmpty) {
+                            <span style="color: green; font-weight: 600;" title="@item.modifiedBy">Modified</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="/private/service/@item.rec.kind/@item.rec.id/open">Open</a>@if(item.actions.nonEmpty) {, <a href="/private/item/@item.rec.id/remove">Remove</a>}
+                    </td>
+                </tr>
+                }
+                @****
+                @if(item.actions.nonEmpty) {
+                <tr>
+                    <td></td>
+                    <td colspan="5" style="background-color:#D8F7CF;">
+                        @for(action <- item.actions) {
+                            <div>
+                                Action: @action.id is @action.action
+                            </div>
+                        }
+                    </td>
+                </tr>
+                }
+                ****@
+            }
+            </table>
+        </div>
+        <div class="actions">
+            <table style="width: 100%">
+                <tr>
+                    <td></td>
+                    <td style="text-align: right;">
+                        @inc.paging("/private", recordPageStart, repo.recordCount, recordPageSize, "repo")
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!--div class="panel">
+        <h2>Configure</h2>
+        <form method="post" action="/upload" enctype="multipart/form-data">
+            <div style="padding: 1em;">
+                <input type="file" name="archive" />
+            </div>
+            <div class="actions">
+                <input type="submit" value="Submit" />
+            </div>
+        </form>
+    </div-->
+
+}

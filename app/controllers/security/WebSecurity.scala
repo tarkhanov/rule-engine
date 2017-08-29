@@ -1,0 +1,53 @@
+package controllers.security
+
+import controllers.Global
+import play.api.http.HttpVerbs
+import play.api.mvc._
+import services.auth.AuthenticationUser
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
+
+/**
+ * Created by Sergey Tarkhanov on 1/29/2015.
+ */
+
+object WebSecurity {
+
+  case class Credentials(login: String, password: String)
+
+  type RequestBody = Map[String, Seq[String]]
+
+  class TryAuthenticatedRequest[A, U](val user: Try[U], request: Request[A]) extends WrappedRequest[A](request)
+  class AuthenticatedRequest[A](val user: String, request: Request[A]) extends WrappedRequest[A](request)
+
+  def login[U <: AuthenticationUser](request: Request[RequestBody], credentials: Credentials, authenticator: Authenticator[U])(block: TryAuthenticatedRequest[RequestBody, U] => Result): Future[Result] = {
+    authenticator.authenticate(credentials).map {
+      case Success(user) =>
+        val result = block(new TryAuthenticatedRequest(Success(user), request))
+        result.addingToSession("user" -> user.uid)(request)
+      case Failure(e) =>
+        block(new TryAuthenticatedRequest(Failure(e), request))
+    }
+  }
+
+  def authenticated[A](request: Request[A])(block: AuthenticatedRequest[A] => Future[Result]): Future[Result] = {
+    val authenticatedSession = request.session.get("user")
+    if (authenticatedSession.nonEmpty)
+      block(new AuthenticatedRequest(authenticatedSession.get, request))
+    else {
+      val redirect = Results.TemporaryRedirect(Global.loginPage.url)
+      val result = if (request.method == HttpVerbs.GET)
+        redirect.flashing("redirect" -> request.uri)
+      else
+        redirect
+      Future.successful(result)
+    }
+  }
+
+  def logout[A](request: Request[A])(block: Request[A] => Result): Future[Result] = {
+    Future.successful(block(request).withNewSession)
+  }
+
+}

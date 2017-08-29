@@ -1,0 +1,21 @@
+@(user: String,
+log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+
+@inc.main("Welcome to Play") {
+
+@inc.nav(Some(user))
+
+<div style="margin: 0 4%">
+<h2 class="main">404</h2>
+</div>
+
+@if(log.isDefined) {
+<div class="panel">
+    <h2>Log</h2>
+    <div style="padding: 20px;">
+        <pre>@log</pre>
+    </div>
+</div>
+}
+
+}

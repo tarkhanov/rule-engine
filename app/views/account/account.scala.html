@@ -1,0 +1,33 @@
+@(user: String,
+log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+
+@inc.main(Messages(user)) {
+
+@inc.nav(Some(user), "account")
+
+<div class="accountHeaderTitle" style="margin: 0 4%">
+    <h2 class="main">@Messages(user)</h2>
+</div>
+
+<div class="panel">
+    <div class="header">
+        <table style="width: 100%">
+            <tr>
+                <td><h2>...</h2></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+@if(log.isDefined) {
+<div class="panel">
+    <h2>Log</h2>
+
+    <div style="padding: 20px;">
+        <pre>@log</pre>
+    </div>
+</div>
+}
+
+}

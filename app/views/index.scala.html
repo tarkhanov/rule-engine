@@ -1,0 +1,9 @@
+@(message: String,
+  user: Option[String],
+  error: Option[String] = None)(implicit messages: Messages, lang: Lang)
+
+@inc.main("Welcome") {
+
+@inc.nav(user)
+
+}

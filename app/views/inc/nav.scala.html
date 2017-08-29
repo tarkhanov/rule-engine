@@ -1,0 +1,54 @@
+@(user: Option[String], section: String = "")(implicit messages: Messages, lang: Lang)
+<nav>
+    <div style="padding-left: 22px;">
+        <ul>
+
+        @if(user.nonEmpty){
+            @if(section == "account" || true) {
+            <li><span style="font-weight: 600;">@user.get</span></li>
+            } else {
+            <li><a href="/private/account" style="font-weight: 600;padding-left: 0; padding-right: 0;">@user.get</a></li>
+            }
+
+            <li><a class="logout" href="/logout" title="@user.get"><span>(Logout)</span></a></li>
+
+            <li style="width: 5em;">&nbsp;</li>
+            @if(section == "repository") {
+                <li class="current"><span>@Messages("components.title")</span></li>
+            } else {
+                <li><a href="/private">@Messages("components.title")</a></li>
+            }
+
+            @if(user.get == "admin") {
+                @if(section == "settings") {
+                    <li class="current"><span>@Messages("settings.title")</span></li>
+                } else {
+                    <li><a href="/private/settings">@Messages("settings.title")</a></li>
+                }
+            }
+
+            @if(section == "statistics") {
+            <li class="current"><span>@Messages("statistics.title")</span></li>
+            } else {
+            <li><a href="/private/monitoring">@Messages("statistics.title")</a></li>
+            }
+
+        }
+        @if(user.isEmpty){
+            <li><a href="/login">Login</a></li>
+        }
+
+
+
+        </ul>
+    </div>
+    <div style="float: right;padding-top:16px">
+        @helper.form(action = routes.LanguageController.changeLanguage()) {
+        <select name="language" style="width: auto;" onchange="this.form.submit()">
+            @play.api.i18n.Lang.availables(play.api.Play.current).map { l =>
+            <option value="@l.code" @(if(lang.code.startsWith(l.code)) "selected")>@Messages("language." + l.code)</option>
+            }
+        </select>
+        }
+    </div>
+</nav>

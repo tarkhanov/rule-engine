@@ -1,0 +1,40 @@
+@(message: String, user: Option[String], error: Option[String], redirect: Option[String])(implicit messages: Messages, lang: Lang)
+
+@inc.main("Login") {
+
+   @inc.nav(user)
+
+<div style="padding: 10% 20px; text-align: center;">
+    <div style="margin: 0 auto; text-align: left; max-width: 474px;  background-color: #fff; border: 1px solid #ccc; border-bottom: 2px solid #ccc;">
+
+	<form method="post" action="/login">
+
+        <div class="loginHeaderTitle" style="margin: 24px 40px; background-position: 0 10px; padding-top: 12px;">
+            <h2 style="/*text-align: center;*/">Login</h2>
+        </div>
+        <div style="padding: 6px 40px 30px;">
+            @if(error.isDefined) {
+            <div>@error.get</div>
+            }
+
+        <table border="0" >
+            <tr>
+                <td style="vertical-align: middle"><label style="text-align: left; width: auto; margin: 0 auto; padding: 0 20px 0 0; color: #777;">Login</label></td>
+                <td><input type="text" name="login" value="admin" style="width: 280px;" data-ripple-color="#89669b" /></td>
+            </tr>
+            <tr>
+                <td style="vertical-align: middle"><label style="text-align: left;width: auto;  margin: 0 auto; padding: 0 20px 0 0; color: #777;">Password</label></td>
+                <td><input type="password" name="password" value="password" style="width: 280px;" data-ripple-color="#89669b" /></td>
+            </tr>
+        </table>
+		<input type="hidden" name="redirect" value='@redirect.getOrElse("")' />
+        </div>
+        <div style="padding: 26px 40px;text-align: center;border-top: 1px solid #ccc; background-color: #f8f8f8;">
+        <div style="margin: 0 auto; text-align: right; width: 364px; ">
+		    <input type="submit" value="Enter" />
+        </div>
+        </div>
+	</form>
+    </div>
+</div>
+}

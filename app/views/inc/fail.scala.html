@@ -1,0 +1,11 @@
+@(fail: Option[String])
+@if(fail.nonEmpty){
+<div style="  background-color: #F16665;
+
+  display: block;
+  padding: 18px 4%; color: #FFF;">
+    <div style="margin: 0px 20px;">
+        @fail.get
+    </div>
+</div>
+}

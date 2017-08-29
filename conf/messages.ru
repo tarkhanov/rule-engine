@@ -1,0 +1,17 @@
+repository.title=Репозиторий
+settings.title=Настройки
+components.title=Компоненты
+file.container.title=Список компонентов
+private-home-title=Компоненты
+create...=Создать...
+session.title=Изменения
+session.submit.button=Применить
+session.cancel.button=Удалить
+users.title=Пользователи
+user.list.title=Список пользователей
+users.create.button=Cоздать учетную запись
+upload=Загрузить
+upload.title=Загрузить новые компоненты
+statistics.title=Мониторинг
+monitoring.cpu=Загрузка процессора
+monitoring.memory=Использование памяти

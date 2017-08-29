@@ -1,0 +1,38 @@
+@(session: Option[models.repository.SessionRec])(implicit messages: Messages)
+
+<div style="float: right;border-left: 2px solid #c0c0c0;padding: 0 0 4px 0;margin-top: 36px;">
+    <table>
+        <tr>
+            <td style="padding-left:12px;padding-right:12px;" colspan="2">
+                @defining( if (session.isDefined) "#888" else "#B0B0B0" ) { color =>
+                <h2 style="color: @color; text-align: left;padding: 0 0 20px 20px;">@Messages("session.title")</h2>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-right: 16px;padding-left:32px;">
+                <form action="/private/commit" method="post">
+                    @if(session.isEmpty) {
+                    <input type="submit" value='@Messages("session.submit.button")' disabled="disabled"/>
+                    }
+                    @if(session.isDefined) {
+                    <input type="submit" value='@Messages("session.submit.button")'/>
+                    }
+                </form>
+            </td>
+            <td>
+                <form action="/private/cancel" method="post">
+                    @if(session.isEmpty) {
+                    <input type="submit" value='@Messages("session.cancel.button")' disabled="disabled"/>
+                    }
+                    @if(session.isDefined) {
+                    <input type="submit" value='@Messages("session.cancel.button")'/>
+                    }
+                </form>
+            </td>
+        </tr>
+    </table>
+</div>
+<!--pre>
+Session Id: session.get.id; Created: session.get.creationDate.format("dd MMMM yyyy HH:mm")
+</pre-->

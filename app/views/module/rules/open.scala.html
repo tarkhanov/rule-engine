@@ -1,0 +1,407 @@
+@(user: String,
+readOnly: Boolean,
+details: models.repository.rules.RuleRepositoryRecDetails,
+definition: models.repository.rules.RulesModel.RuleSet,
+log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+
+@inc.main("Rule Set: " + details.record.name) {
+
+<script type="text/javascript" src="/assets/javascripts/shCore.js"></script>
+<script type="text/javascript" src="/assets/javascripts/shBrushPython.js"></script>
+<link type="text/css" rel="stylesheet" href="/assets/stylesheets/shCoreDefault.css"/>
+<script type="text/javascript">
+SyntaxHighlighter.defaults['gutter'] = false;
+SyntaxHighlighter.defaults['toolbar'] = false;
+SyntaxHighlighter.all();
+</script>
+
+@inc.nav(Some(user), "repository")
+
+<div class="ruleSetHeaderTitle" style="margin: 0 4%">
+    <h2 class="main"><a href="/private">@Messages("repository.title")</a> <span style="color: #909090;">/</span> Rule
+        Set: @details.record.name @if(!readOnly) { (Uncommitted) }</h2>
+</div>
+
+<form action="/private/service/rules/@details.record.id/save" method="post" enctype="application/x-www-form-urlencoded">
+    <div class="offset">
+        <div style="padding: 12px 20px; border: 1px solid #e0e0e0;">
+            @if(readOnly) {
+            <a href="/private/service/rules/@details.record.id/edit" class="button">Create New Version</a>
+            }
+            @if(!readOnly) {
+            <input type="submit" class="save-button" name="doSave" value="Save" style="margin-right: 10px;"/>
+            <a class="button" href="/private/item/@details.record.id/remove">Remove</a>
+            }
+        </div>
+    </div>
+</form>
+
+<div class="panel">
+    <div class="header">
+        <h2>Metadata</h2>
+    </div>
+    <div style="padding: 10px 20px">
+        <table style="width: 100%">
+            <tr>
+                <td style="border-bottom: 0 none;">
+                    <table>
+                        <tr>
+                            <td><b>Id</b></td>
+                            <td><span class="recordId" style="color: firebrick;">@details.record.id</span></td>
+                        </tr>
+                        <tr>
+                            <td><b>Api</b></td>
+                            <td><span style="color: firebrick;">@details.record.api</span></td>
+                        </tr>
+                        <tr>
+                            <td><b>Name</b></td>
+                            <td>@if(readOnly) {
+                                @details.record.name
+                                } else {
+                                <input type="text" class="rulesName" value="@details.record.name" />
+                                }</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-right: 12px;"><b>Sequence</b></td>
+                            <td><span style="color: firebrick;">@if(readOnly) {
+                        <a href="https://localhost/private/item/@details.record.id/sequence">@details.record.seq</a>
+                    } else {
+                        <input type="text" class="rulesSequence" value="@details.record.seq" />
+                    }</span></td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="border-bottom: 0 none;">
+                    @if(readOnly) {
+                    <div><a href="https://localhost/interface/rules/seq:@details.record.seq/soap?wsdl">SOAP Service
+                        Definition by sequence</a></div>
+                    <div>
+                        <a href="https://localhost/interface/rules/seq:@details.record.seq;api:@details.record.api/soap?wsdl">SOAP
+                            Service Definition by sequence and api</a></div>
+                    }
+                    @if(!readOnly) {
+                    <div><span style="color: #808080;">SOAP Service Definition by sequence</span></div>
+                    <div><span style="color: #808080;">SOAP Service Definition by sequence and api</span></div>
+                    }
+                    <div><a href="https://localhost/interface/rules/id:@details.record.id/soap?wsdl">SOAP Service
+                        Definition by id</a></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!--div class="actions">
+        @if(readOnly) {
+        <a href="/private/service/rules/@details.record.id/edit" class="button">Create New Version</a>
+        }
+        @if(!readOnly) {
+        <input type="submit" name="doSave" value="Save"/>
+        }
+    </div-->
+</div>
+
+<div class="offset rule-set-editor">
+    <div class="containerParameters">
+        <div class="container-args">
+            <div class="panel">
+                <div class="header"><h2>Arguments</h2></div>
+                <div style="padding: 10px 20px">
+                    @if(readOnly) {
+                    <table class="args-list" style="width: 100%;">
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                        </tr>
+                        @definition.arguments.list.map { arg =>
+                        <tr>
+                            <td class="argumentName">@arg.name</td>
+                            <td class="typeName">@{arg.`type`}</td>
+                        </tr>
+                        }
+                    </table>
+                    } else {
+                    <div class="args-list">
+                        <div>
+                            <div class="header" style="float: left; width: 50%;">Name</div>
+                            <div class="header" style="float: left; width: 40%;">Type</div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        @definition.arguments.list.map { arg =>
+                        <div class="arg">
+                            <div class="argumentName" style="float: left; width: 50%;">
+                                <input type="text" style="width: 80%;" value="@arg.name"/>
+                            </div>
+                            <div class="typeName" style="float: left; width: 40%;">
+                                <a href="#" class="type" data-type="@{arg.`type`}">@{arg.`type`}</a>
+                            </div>
+                            <div style="float: left; width: 10%; text-align: right;">
+                                <a class="up" href="#"><span>U</span></a>
+                                <a class="down" href="#"><span>D</span></a>
+                                <a class="delete" href="#"><span>X</span></a>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+                @if(!readOnly) {
+                <div class="actions" style="text-align: right;">
+                    <a href="#" class="button args-add">Add</a>
+                </div>
+                }
+            </div>
+        </div>
+        <div class="container-results">
+            <div class="panel">
+                <div class="header"><h2>Results</h2></div>
+                <div style="padding: 10px 20px">
+                    @if(readOnly) {
+                    <table class="results-list" style="width: 100%">
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                        </tr>
+                        @definition.results.list.map { result =>
+                        <tr>
+                            <td class="resultName">@result.name</td>
+                            <td class="typeName">@{result.`type`}</td>
+                        </tr>
+                        }
+                    </table>
+                    } else {
+                    <div class="results-list">
+                        <div>
+                            <div class="header" style="float: left; width: 50%;">Name</div>
+                            <div class="header" style="float: left; width: 40%;">Type</div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        @definition.results.list.map { result =>
+                        <div class="result">
+                            <div class="resultName" style="float: left; width: 50%;">
+                                <input type="text" style="width: 80%;" value="@result.name"/>
+                            </div>
+                            <div class="typeName" style="float: left; width: 40%;">
+                                <a href="#" class="type" data-type="@{result.`type`}">@{result.`type`}</a>
+                            </div>
+                            <div style="float: left; width: 10%; text-align: right;">
+                                <a class="up" href="#"><span>U</span></a>
+                                <a class="down" href="#"><span>D</span></a>
+                                <a class="delete" href="#"><span>X</span></a>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+                @if(!readOnly) {
+                <div class="actions" style="text-align: right;">
+                    <a href="#" class="button results-add">Add</a>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="container-rules">
+        <div class="panel last">
+            <div class="header"><h2>Rules</h2></div>
+            @if(!readOnly) {
+            <div class="actions">
+                <a href="#" class="button rules-add">Add</a>
+            </div>
+            }
+            <div class="rules-list" style="padding: 10px 10px 1px 10px; background-color: #d0d0d0;">
+                @definition.rules.list.map { rule =>
+                <div style="margin-bottom: 10px; background-color: #FFF;border: 2px solid #FFF; border-radius: 2px; /*box-shadow: 0 1px 1px 1px #A0A0A0;*/">
+                    <table class="item" style="width: 100%;">
+                        @if(!readOnly || ( readOnly && rule.name.isDefined ) ) {
+                        <tr>
+                            <th width="2%">
+                                <div class="fieldHeader">N</div>
+                            </th>
+                            <td width="98%">
+                                <table width="100%">
+                                    <tr>
+                                        <td>
+                                            <div class="fieldFrame">
+                                                @if(readOnly) {
+                                                @rule.name&nbsp;
+                                                } else {
+                                                <input class="ruleName" type="text" value="@rule.name"/>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td style="padding: 11px;">
+                                            @if(!readOnly) {
+                                            <a class="delete" href="#"><span>X</span></a>
+                                            }
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        }
+                        <tr>
+                            <th width="2%">
+                                <div class="fieldHeader">?</div>
+                            </th>
+                            <td width="98%">
+                                <div class="fieldFrame">
+                                    @if(readOnly) {
+                                    <pre class="brush: python;">@rule.condition.code</pre>
+                                    } else {
+                                    <textarea class="ruleCondition" style="width: 100%; height: 60px;">@rule.condition.code</textarea>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th width="2%">
+                                <div class="fieldHeader">=</div>
+                            </th>
+                            <td width="98%">
+                                <div class="fieldFrame">
+                                    @if(readOnly) {
+                                    <pre class="brush: python;">@rule.body.code</pre>
+                                    } else {
+                                    <textarea class="ruleBody" style="width: 100%; height: 160px;">@rule.body.code</textarea>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                }
+            </div>
+            @if(!readOnly) {
+            <div class="actions">
+                <a href="#" class="button rules-add">Add</a>
+            </div>
+            }
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+
+<style>
+
+
+    DIV.results-list DIV.header,
+    DIV.args-list DIV.header {
+    padding: 4px 0 8px 0;
+    border-bottom: 0 none;
+    font-weight: 600;
+    }
+
+    .typeName {
+    color: #008000;
+    font-weight: 600;
+    padding: 2px 0;
+    }
+
+    TABLE TH {
+    padding: 4px 0 8px 0;
+    }
+    TABLE TD {
+    padding: 2px 0;
+    }
+
+
+    .like-panel {
+    margin: 0px 4% 0px 4%;
+    padding: 0
+
+    }
+    .border {
+    border-color: #C0C0C0;
+    border-style: solid;
+    }
+    h2.section {
+    color: #AAA;
+    padding: 26px 20px 16px 0px;
+    text-shadow: 0 1px 1px #FFF;
+    }
+    .p {
+    background-color: #FFF;
+    border: 1px solid #ccc;
+    border-bottom-width: 2px;
+    margin: 10px 6% 10px 0;
+    padding: 0;
+    }
+
+    TH {
+    text-align: left;
+    }
+    H3 {
+    font-size: 1.2em;
+    padding: 0 0 1.4em 0;
+    }
+    div.rules TD,
+    div.rules TH {
+    padding: 2px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    }
+    div.rules TABLE TABLE TD,
+    div.rules TABLE TABLE TH {
+    padding: 8px 0;border-bottom: 0px none;
+    }
+    div.rules TABLE TABLE TH {
+    width: 120px;
+    }
+
+
+    TABLE.item TH {
+    background-color: #f0f0f0
+    }
+
+    TABLE.item TH,
+    TABLE.item TD {
+    padding: 0px 0;
+    vertical-align: top;
+    }
+
+    DIV.fieldHeader {
+    padding: 6px 20px 10px 20px; /*border: 1px solid #f0f0f0; */;
+    }
+
+    DIV.fieldFrame {
+    padding: 6px 20px 6px 12px;
+    /*border: 1px solid #fff;*/
+    }
+
+    DIV.fieldFrame TEXTAREA {
+    margin: 0;
+    padding-top: 4px;
+    }
+
+    .syntaxhighlighter {
+    overflow: hidden !important;
+    width: auto !important;
+    margin: 5px 12px 6px 12px !important;
+    }
+
+    INPUT[type=text] {
+    margin: 4px 0;
+    }
+    .up, .down {
+    display: none;
+    }
+    A.delete {
+    background: transparent url(/assets/images/remove.png) 50% 50% no-repeat;
+    width: 32px;
+    height: 32px;
+    display: block;
+    border-bottom: 0 none;
+    margin: 0 0 0 auto;
+    opacity: 0.6;
+    }
+    A.delete:HOVER {
+    opacity: 1;
+    }
+    A.delete SPAN {
+    visibility: hidden;
+    }
+
+</style>
+
+}

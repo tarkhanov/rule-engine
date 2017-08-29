@@ -1,0 +1,43 @@
+@(user: String,
+fail: Option[String] = None,
+log: Option[String] = None)(implicit messages: Messages, lang: Lang, request: RequestHeader)
+
+@inc.main(Messages("statistics.title")) {
+
+@inc.nav(Some(user), "statistics")
+@inc.fail(fail)
+
+<div style="margin: 0 4%" class="monitoringHeaderTitle">
+    <h2 class="main">@Messages("statistics.title")</h2>
+</div>
+
+<div class="offset">
+    <div style="float: left; width: 50%;">
+        <div class="panel" style="margin-right: 15px;">
+            <div class="header">
+                <h2>@Messages("monitoring.cpu")</h2>
+            </div>
+            <div id="cpuChart" style="padding: 20px;"></div>
+        </div>
+    </div>
+    <div style="float: right; width: 50%;">
+
+        <div class="panel" style="margin-left: 15px;">
+            <div class="header">
+                <h2>@Messages("monitoring.memory")</h2>
+            </div>
+            <div id="memoryChart" style="padding: 20px;"></div>
+        </div>
+
+    </div>
+    <div style="clear: both;"></div>
+</div>
+
+<script type="text/javascript" src="/assets/javascripts/highcharts.js"></script>
+<script type="text/javascript" src="/assets/javascripts/monitoring.js"></script>
+<script type="text/javascript">
+    loadMonitoringCharts("@routes.MonitoringController.wsMonitoring.webSocketURL()")
+</script>
+
+}
+

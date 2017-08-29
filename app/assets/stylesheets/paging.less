@@ -1,0 +1,45 @@
+
+@pagerColor: #13A28C;
+
+
+.paging {
+	float: right;
+	border: 2px solid @pagerColor;/*#755382*/
+	border-radius: 4px;
+	background-color: #fff;
+}
+
+A.page {
+		color: darken(@pagerColor, 6%);
+        padding: 5px 17px;
+        font-weight: 600;
+        display: block;
+        float: left;
+        border-bottom: 0 none;
+}
+
+A.page.current {
+	background-color: @pagerColor;
+	color: #FFF;
+}
+
+.paging.single {
+	border-color: #bbb;
+	A.page.current {
+		background-color: #bbb;
+	}
+}
+
+.pageSize {
+	float: right;
+    margin: 0 0 0 10px;
+    border: 2px solid #13A28C;
+    border-radius: 4px;
+}
+
+.pageSizeSelect {
+	border: none;
+    height: 38px;
+    color: #268774;
+    font-weight: bold;
+}

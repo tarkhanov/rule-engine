@@ -1,0 +1,103 @@
+@(user: String,
+  details: models.repository.DetailsRepositoryRec,
+    historyPageStart: Int,
+    historyPageSize: Int,
+  log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+
+@inc.main("Sequence: " + details.rec.seq) {
+
+@inc.nav(Some(user), "repository")
+
+<div style="margin: 0 4%"  class="headerTitle">
+    <h2 class="main"><a href="/private">@Messages("repository.title")</a> <span style="color: #909090;">/</span> @details.rec.name</h2>
+</div>
+
+        @if(log.isDefined) {
+            <div class="panel">
+                <h2>Log</h2>
+                <div style="padding: 20px;">
+                    <pre>@log</pre>
+                </div>
+            </div>
+        }
+
+        @if(details.history.nonEmpty) {
+        <div class="panel">
+            <h2>History of component: <span style="color: firebrick;">@details.rec.seq</span></h2>
+            <div class="table">
+
+                <table class="repo">
+                    <tr>
+                        <th>ID</th>
+                        <th>Status</th>
+
+                        <th>Type</th>
+                        <th>Name</th>
+                        <!--th>LOCKED BY</th-->
+                        <!--thOVER</th-->
+                        <th>Commit</th>
+                        <th>Actions</th>
+                    </tr>
+                    @for(item <- details.history) {
+                    @defining( if(details.rec.id == item.rec.id) "current-rec" else "" ) { color =>
+
+                    <tr class="@color">
+                        <td class="info-identity">@item.rec.id</td>
+                        <td class="info-identity">
+                            @("Active".when(item.rec.active))
+                        </td>
+
+                        <td>@item.rec.kind</td>
+                        <td><a href="/private/item/@item.rec.id/sequence">@item.rec.name</a></td>
+                        <!--td>rec.lockedBy</td-->
+                        <!--td>rec.over</td-->
+                        <td>
+                            @for((action, session) <- item.actions) {
+                                @if(action.action == "COMMIT") {
+                                    @session.user (@session.commitDate.get.format("dd MMMM yyyy HH:mm"))
+                                }
+                            }
+                        </td>
+                        <td>
+<!--
+                                if(rec.lockedBy.isDefined && rec.lockedBy.get == user) {
+                                    <a href="/private/item/@item.rec.id/remove">Remove</a>
+                                }
+
+                                if(rec.lockedBy.isEmpty && rec.active) {
+                                    <a href="/private/item/item.rec.id/deactivate">Deactivate</a>
+                                }
+                                if(rec.lockedBy.isEmpty && ! rec.active) {
+                                    <a href="/private/item/item.rec.id/activate">Activate</a>
+                                }
+-->
+                            <a href="/private/service/@item.rec.kind/@item.rec.id/open">Open</a>
+
+                        </td>
+                    </tr>
+                    }
+                    }
+                </table>
+            </div>
+            <div class="actions">
+                <table style="width: 100%">
+                    <tr>
+                        <td></td>
+                        <td style="text-align: right;">
+                            @inc.paging("/private/item/" + details.rec.id + "/details", historyPageStart, details.historyCount, historyPageSize, "history")
+                        </td>
+                    </tr>
+                </table>
+                <!--form action="/commit" method="post">
+                    <input type="submit" value="Submit" />
+                </form>
+                <form action="/cancel" method="post">
+                    <input type="submit" value="Cancel" />
+                </form-->
+            </div>
+        </div>
+        }
+
+
+
+}
