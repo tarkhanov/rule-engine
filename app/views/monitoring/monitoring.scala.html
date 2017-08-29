@@ -2,7 +2,12 @@
 fail: Option[String] = None,
 log: Option[String] = None)(implicit messages: Messages, lang: Lang, request: RequestHeader)
 
-@inc.main(Messages("statistics.title")) {
+@scripts = {
+    <script type="text/javascript" src="/assets/javascripts/highcharts.js"></script>
+    <script type="text/javascript" src="/assets/javascripts/monitoring.js"></script>
+}
+
+@inc.main(Messages("statistics.title"), scripts) {
 
 @inc.nav(Some(user), "statistics")
 @inc.fail(fail)
@@ -33,8 +38,6 @@ log: Option[String] = None)(implicit messages: Messages, lang: Lang, request: Re
     <div style="clear: both;"></div>
 </div>
 
-<script type="text/javascript" src="/assets/javascripts/highcharts.js"></script>
-<script type="text/javascript" src="/assets/javascripts/monitoring.js"></script>
 <script type="text/javascript">
     loadMonitoringCharts("@routes.MonitoringController.wsMonitoring.webSocketURL()")
 </script>
