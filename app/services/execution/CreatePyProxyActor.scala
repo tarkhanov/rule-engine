@@ -11,6 +11,11 @@ import scala.collection.JavaConversions
 /**
  * Created by Sergey Tarkhanov on 6/11/2015.
  */
+
+// TODO: This proxy generation is not the best way to pass data into python script.
+// TODO: Maybe, would be better to generate python code which will recreate arguments
+// TODO: at the beginning of execution
+
 case class CreatePyProxy(proxyClassName: String, pythonStructure: PythonStructure)
 
 abstract class PyProxy extends PyObject {
