@@ -18,7 +18,7 @@ import scala.xml.XML
 class TypesRepository(val repository: Repository, dbUtil: DBUtil)(implicit ec: ExecutionContext) extends RepositoryExtension with StrictLogging {
 
   import repository.dbConfig._
-  import driver.api._
+  import profile.api._
 
   type TypeRepositoryExt = (Long, String)
 

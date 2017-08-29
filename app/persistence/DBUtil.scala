@@ -4,7 +4,7 @@ import javax.inject.{Inject, Singleton}
 
 import com.typesafe.scalalogging.StrictLogging
 import play.api.db.slick.DatabaseConfigProvider
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 import slick.jdbc.meta.MTable
 import slick.lifted.AbstractTable
 
@@ -17,7 +17,7 @@ class DBUtil @Inject()(dbConfigProvider: DatabaseConfigProvider)(implicit ec: Ex
   private val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
-  import driver.api._
+  import profile.api._
 
   private lazy val list = Await.result(db run MTable.getTables, 5.seconds)
 

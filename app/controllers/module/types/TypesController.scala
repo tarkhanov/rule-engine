@@ -3,12 +3,11 @@ package controllers.module.types
 import java.io.StringReader
 import javax.inject.Inject
 
-import controllers.security.AuthenticatedAction
+import controllers.InternationalInjectedController
+import controllers.security.AuthAction
 import models.repository.types.TypesModel._
 import models.repository.types.{TypeModelXML, TypeRepositoryRec}
 import persistence.repository.Repository
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.Controller
 import services.types.TypesService
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,9 +15,9 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * Created by Sergey Tarkhanov on 5/30/2015.
  */
-class TypesController @Inject()(val messagesApi: MessagesApi, typesService: TypesService)(implicit ec: ExecutionContext) extends Controller with I18nSupport {
+class TypesController @Inject()(authenticatedAction: AuthAction, typesService: TypesService)(implicit ec: ExecutionContext) extends InternationalInjectedController {
 
-  def create = AuthenticatedAction async {
+  def create = authenticatedAction async {
     implicit request =>
 
       import models.repository.types.TypeModelXML._
@@ -32,7 +31,7 @@ class TypesController @Inject()(val messagesApi: MessagesApi, typesService: Type
       } yield result
   }
 
-  def open(id: Long) = AuthenticatedAction async {
+  def open(id: Long) = authenticatedAction async {
     implicit request =>
       typesService.getRecordDetails(id, request.user).map {
         case Some(rec) =>
@@ -44,7 +43,7 @@ class TypesController @Inject()(val messagesApi: MessagesApi, typesService: Type
       }
   }
 
-  def edit(id: Long) = AuthenticatedAction async {
+  def edit(id: Long) = authenticatedAction async {
     implicit request =>
       typesService.lookupId(id).flatMap {
         case Some(current) => typesService.create(Some(current.seq), current, request.user)

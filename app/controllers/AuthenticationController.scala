@@ -4,11 +4,9 @@ import javax.inject.Inject
 
 import controllers.AuthenticationController.LoginFormData
 import controllers.security.WebSecurity.Credentials
-import controllers.security.{AuthenticatedAction, WebSecurity}
+import controllers.security.{AuthAction, WebSecurity}
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
 import services.AuthService
 import util._
 
@@ -21,14 +19,11 @@ object AuthenticationController {
 
 }
 
-class AuthenticationController @Inject()(val messagesApi: MessagesApi, authService: AuthService) extends Controller with I18nSupport with RequestImplicits {
-
-  private val defaultLandingPage = Global.defaultLandingPage
-  private val loginPage = Global.loginPage
-  private val logoutPage = Global.logoutPage
+class AuthenticationController @Inject()(authenticatedAction: AuthAction, authService: AuthService) extends InternationalInjectedController {
 
   def login = Action {
-    drawLoginForm(_, None)
+    implicit request =>
+      Ok(views.html.login("Your new application is ready.", None, request.error, request.redirect))
   }
 
   private val userLoginFrom = Form(mapping(
@@ -37,7 +32,7 @@ class AuthenticationController @Inject()(val messagesApi: MessagesApi, authServi
     "redirect" -> optional(text)
   )(LoginFormData.apply)(LoginFormData.unapply))
 
-  def enter = Action.async(parse.urlFormEncoded) {
+  def enter = Action.async(parse.formUrlEncoded) {
     implicit request =>
       userLoginFrom.bindFromRequest.continue {
         case Success(data) =>
@@ -45,24 +40,20 @@ class AuthenticationController @Inject()(val messagesApi: MessagesApi, authServi
           WebSecurity.login(request, credentials, authService) {
             _.user match {
               case Success(_) =>
-                SeeOther(data.redirect.flatMap(nonEmptyOption).getOrElse(defaultLandingPage.url))
+                SeeOther(data.redirect.flatMap(nonEmptyOption).getOrElse(Pages.defaultLandingPage.url))
               case Failure(e) =>
-                Redirect(loginPage) withError e
+                Redirect(Pages.loginPage) withError e
             }
           }
         case Failure(error) =>
-          Future.successful(Redirect(loginPage) withError error)
+          Future.successful(Redirect(Pages.loginPage) withError error)
       }
   }
 
-  def logout = AuthenticatedAction async {
+  def logout = authenticatedAction async {
     WebSecurity.logout(_) {
-      _ => Redirect(logoutPage)
+      _ => Redirect(Pages.logoutPage)
     }
-  }
-
-  private def drawLoginForm[A](request: Request[A], user: Option[String]): Result = {
-    Ok(views.html.login("Your new application is ready.", user, request.error, request.redirect))
   }
 
   private def nonEmptyOption(string: String): Option[String] =

@@ -1,28 +1,31 @@
-import sbt.Keys._
+name := """rule-engine"""
 
-val projectScalaVersion = "2.11.7"
+version := "1.0"
 
-resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-lazy val root = (project in file("."))
-  .settings(
-    name := "rule-engine",
-    version := "1.0",
-    scalaVersion := projectScalaVersion,
+resolvers += Resolver.sonatypeRepo("snapshots")
 
-    libraryDependencies ++= Seq(
-        jdbc,
-        cache,
-        "commons-io" % "commons-io" % "2.4",
-        "mysql" % "mysql-connector-java" % "5.1.32",
-        "org.xerial" % "sqlite-jdbc" % "3.20.0",
-        "com.timesprint" %% "hashids-scala" % "1.0.0",
-        "org.python" % "jython-standalone" % "2.7.0",
-        "com.mohiva" %% "play-html-compressor" % "0.5.0",
-        "com.typesafe.play" %% "play-slick" %  "1.1.1",
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
-    )
-  )
-  .enablePlugins(PlayScala)
+scalaVersion := "2.12.3" // "2.11.11"
+
+libraryDependencies += guice
+libraryDependencies += "commons-io" % "commons-io" % "2.4"
+
+libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.20.0"
+//libraryDependencies += "com.timesprint" %% "hashids-scala" % "1.0.0"
+libraryDependencies += "org.hashids" % "hashids" % "1.0.3"
 
 
+libraryDependencies += "org.javassist" % "javassist" % "3.21.0-GA"
+libraryDependencies += "org.python" % "jython-standalone" % "2.7.0"
+
+libraryDependencies += "com.mohiva" %% "play-html-compressor" % "0.7.1"
+
+libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1"
+libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
+libraryDependencies += "com.typesafe.play" %% "play-slick" %  "3.0.1"
+
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % Test
+//libraryDependencies += "com.h2database" % "h2" % "1.4.194"

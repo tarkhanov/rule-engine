@@ -18,7 +18,7 @@ import scala.util.{Success, Try}
 class RulesRepository(val repository: Repository, typesRepository: TypesRepository, dbUtil: DBUtil)(implicit ec: ExecutionContext) extends RepositoryExtension with StrictLogging {
 
   import repository.dbConfig._
-  import driver.api._
+  import profile.api._
 
   type RuleRepositoryExt = (Long, String, String)
 

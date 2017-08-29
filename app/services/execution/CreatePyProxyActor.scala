@@ -3,10 +3,10 @@ package services.execution
 import java.util
 import javassist.{ClassClassPath, ClassPool, CtNewMethod}
 
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.{Actor, ActorLogging, Props}
 import org.python.core.PyObject
 
-import scala.collection.JavaConversions
+import scala.collection.JavaConverters
 
 /**
  * Created by Sergey Tarkhanov on 6/11/2015.
@@ -27,11 +27,17 @@ abstract class PyProxy extends PyObject {
 
   def this(link: PythonStructure) {
     this()
-    this.link = JavaConversions.mapAsJavaMap(link)
+    this.link = JavaConverters.mapAsJavaMap(link)
   }
 
   override def toString: String =
     "PyProxy: " + link.toString
+
+}
+
+object CreatePyProxyActor {
+
+  def props(classLoader: ClassLoader) = Props(new CreatePyProxyActor(classLoader))
 
 }
 

@@ -1,6 +1,6 @@
 @(user: String,
   fail: Option[String] = None,
-  log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+  log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
 
 @inc.main(Messages("private-home-title")) {
 

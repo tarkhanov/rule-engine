@@ -3,13 +3,9 @@ package controllers
 import javax.inject.Inject
 
 import controllers.SettingsController.SettingsUserList
-import controllers.security.AuthenticatedAction
+import controllers.security.AuthAction
 import models.users.User
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.Controller
 import services.UserService
-
-import scala.concurrent.ExecutionContext
 
 /**
  * Created by Sergey Tarkhanov on 7/29/2015.
@@ -21,9 +17,9 @@ object SettingsController {
 
 }
 
-class SettingsController @Inject()(val messagesApi: MessagesApi, userService: UserService)(implicit ec: ExecutionContext) extends Controller with I18nSupport with RequestImplicits {
+class SettingsController @Inject()(authenticatedAction: AuthAction, userService: UserService) extends InternationalInjectedController {
 
-  def settings(pageStart: Option[Int], pageSize: Option[Int]) = AuthenticatedAction async {
+  def settings(pageStart: Option[Int], pageSize: Option[Int]) = authenticatedAction async {
     implicit request =>
 
       val usersPageStart = pageStart.orElse(sessionInt("usersPageStart")).map(_.max(1)).getOrElse(1) - 1

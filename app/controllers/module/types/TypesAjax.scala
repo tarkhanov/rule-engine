@@ -2,21 +2,19 @@ package controllers.module.types
 
 import javax.inject.Inject
 
-import controllers.security.AuthenticatedAction
-import models.repository.types.{TypeModelXML, TypesModel}
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json._
-import play.api.mvc.Controller
+import controllers.InternationalInjectedController
+import controllers.security.AuthAction
 import models.repository.types.TypesModel.{Field, Type}
+import models.repository.types.{TypeModelXML, TypesModel}
+import play.api.libs.json._
 import services.types.TypesService
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.language.implicitConversions
+import scala.concurrent.Future
 
 /**
  * Created by Sergey Tarkhanov on 7/17/2015.
  */
-class TypesAjax @Inject()(val messagesApi: MessagesApi, typesService: TypesService)(implicit ec: ExecutionContext) extends Controller with I18nSupport {
+class TypesAjax @Inject()(authenticatedAction: AuthAction, typesService: TypesService) extends InternationalInjectedController {
 
   implicit object writeListOfPairs extends Writes[List[(String, String)]] {
     def writes(list: List[(String, String)]) =
@@ -26,13 +24,13 @@ class TypesAjax @Inject()(val messagesApi: MessagesApi, typesService: TypesServi
   def getListOfTypes(listName: String): List[(String, String)] =
     TypesModel.builtInTypes.map(item => item -> item)
 
-  def available(listName: String) = AuthenticatedAction async {
+  def available(listName: String) = authenticatedAction async {
     implicit request =>
       val listOfTypes = getListOfTypes(listName)
       Future.successful(Ok(Json.toJson(listOfTypes)).as("application/json"))
   }
 
-  def save(id: Long) = AuthenticatedAction.async(parse.json) {
+  def save(id: Long) = authenticatedAction.async(parse.json) {
     request =>
       request.body.result.toOption match {
         case Some(jsonTypeDefinition) =>

@@ -2,7 +2,7 @@
 readOnly: Boolean,
 details: models.repository.rules.RuleRepositoryRecDetails,
 definition: models.repository.rules.RulesModel.RuleSet,
-log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
 
 @scripts = {
     <script type="text/javascript" src="/assets/javascripts/shCore.js"></script>

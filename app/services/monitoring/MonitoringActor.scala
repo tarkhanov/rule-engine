@@ -4,12 +4,10 @@ import java.lang.management.ManagementFactory
 import java.util.Date
 import javax.management.{Attribute, ObjectName}
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Cancellable}
-import akka.event.{EventBus, LookupClassification}
-import play.api.libs.json.{JsObject, JsString, JsValue}
-import services.monitoring.MonitoringActor.{Subscribe, UnSubscribe}
+import akka.actor.{Actor, ActorLogging, ActorRef, Cancellable, Props}
+import play.api.libs.json.{JsObject, JsString, Json}
+import services.monitoring.MonitoringActor.{Subscribe, UnSubscribe, UpdateStatusInfo}
 
-import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -19,68 +17,63 @@ import scala.language.postfixOps
 
 object MonitoringActor {
 
-  final case class Subscribe(actor: ActorRef)
+  def props: Props = Props(new MonitoringActor)
 
-  final case class UnSubscribe(actor: ActorRef)
-}
+  case class Subscribe(actor: ActorRef)
 
-class MonitoringActor extends Actor with ActorLogging with EventBus with LookupClassification {
+  case class UnSubscribe(actor: ActorRef)
 
-  import context._
+  case class UpdateStatusInfo(status: JsObject)
 
-  type Event = JsValue
-  type Classifier = String
-  type Subscriber = ActorRef
+  def collectStatusInfo(): JsObject = {
 
-  override protected def classify(event: Event): Classifier = ""
+    def getProcessCpuLoad: (Int, Int) = {
 
-  override protected def publish(event: Event, subscriber: Subscriber): Unit = subscriber ! event
+      val mbs = ManagementFactory.getPlatformMBeanServer
+      val name = ObjectName.getInstance("java.lang:type=OperatingSystem")
+      val list = mbs.getAttributes(name, List("SystemCpuLoad", "ProcessCpuLoad").toArray)
 
-  override protected def compareSubscribers(a: Subscriber, b: Subscriber): Int = a.compareTo(b)
+      val att = list.get(0).asInstanceOf[Attribute]
+      val systemCPULoad = att.getValue.asInstanceOf[Double]
+      val att1 = list.get(1).asInstanceOf[Attribute]
+      val processCPULoad = att1.getValue.asInstanceOf[Double]
 
-  override protected def mapSize(): Int = 128
-
-  private def start(): Cancellable = {
-
-    log.debug("Start Monitoring")
-
-    context.system.scheduler.schedule(0 seconds, 1 second) {
-
-      def getProcessCpuLoad: (Int, Int) = {
-
-        val mbs = ManagementFactory.getPlatformMBeanServer
-        val name = ObjectName.getInstance("java.lang:type=OperatingSystem")
-        val list = mbs.getAttributes(name, List("SystemCpuLoad", "ProcessCpuLoad").toArray)
-
-        val att = list.get(0).asInstanceOf[Attribute]
-        val systemCPULoad = att.getValue.asInstanceOf[Double]
-        val att1 = list.get(1).asInstanceOf[Attribute]
-        val processCPULoad = att1.getValue.asInstanceOf[Double]
-
-        def toPercentage(value: Double): Int = {
-          val res = if (value == -1.0) Float.NaN // usually takes a couple of seconds before we get real values
-          else ((value * 1000) / 10.0f).toFloat // returns a percentage value with 1 decimal point precision
-          math.round(math.floor(res)).toInt
-        }
-
-        (toPercentage(systemCPULoad), toPercentage(processCPULoad))
+      def toPercentage(value: Double): Int = {
+        val res = if (value == -1.0) Float.NaN
+        else ((value * 1000) / 10.0f).toFloat
+        math.round(math.floor(res)).toInt
       }
 
-      val runtime = Runtime.getRuntime
-      val mb = 1024 * 1024
-      val usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / mb
-      val totalMemory = runtime.totalMemory() / mb
+      (toPercentage(systemCPULoad), toPercentage(processCPULoad))
+    }
 
-      val (systemLoad, processLoad) = getProcessCpuLoad
+    val runtime = Runtime.getRuntime
+    val mb = 1024 * 1024
+    val usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / mb
+    val totalMemory = runtime.totalMemory() / mb
 
-      val status = mutable.MutableList[(String, JsValue)]()
-      status += "ts" -> JsString(new Date().getTime.toString)
-      status += "sl" -> JsString(systemLoad.toString)
-      status += "pl" -> JsString(processLoad.toString)
-      status += "um" -> JsString(usedMemory.toString)
-      status += "tm" -> JsString(totalMemory.toString)
+    val (systemLoad, processLoad) = getProcessCpuLoad
 
-      publish(JsObject(status))
+    Json.obj(
+      "ts" -> JsString(new Date().getTime.toString),
+      "sl" -> JsString(systemLoad.toString),
+      "pl" -> JsString(processLoad.toString),
+      "um" -> JsString(usedMemory.toString),
+      "tm" -> JsString(totalMemory.toString)
+    )
+  }
+}
+
+class MonitoringActor extends Actor with ActorLogging {
+
+  import context.dispatcher
+
+  private val eventBus = new MonitoringEventBus()
+
+  private def start(): Cancellable = {
+    log.debug("Start Monitoring")
+    context.system.scheduler.schedule(0 seconds, 1 second) {
+      self ! UpdateStatusInfo(MonitoringActor.collectStatusInfo())
     }
   }
 
@@ -92,23 +85,26 @@ class MonitoringActor extends Actor with ActorLogging with EventBus with LookupC
   def receive: Receive = receiverWhileJobIsStopped()
 
   def receiverWhileJobIsRunning(job: Cancellable): Receive = {
-    case Subscribe(actor: ActorRef) =>
-      subscribe(actor, "")
-    case UnSubscribe(actor: ActorRef) =>
-      unsubscribe(actor)
-      if (subscribers.isEmpty) {
+    case Subscribe(actor) =>
+      eventBus.subscribe(actor, "")
+    case UnSubscribe(actor) =>
+      eventBus.unsubscribe(actor)
+      if (eventBus.isEmpty) {
         stop(job)
-        become(receiverWhileJobIsStopped())
+        context.become(receiverWhileJobIsStopped())
       }
+    case UpdateStatusInfo(status) =>
+      eventBus.publish(status)
   }
 
   def receiverWhileJobIsStopped(): Receive = {
-    case Subscribe(actor: ActorRef) =>
-      subscribe(actor, "")
-      become(receiverWhileJobIsRunning(start()))
-    case UnSubscribe(actor: ActorRef) =>
+    case Subscribe(actor) =>
+      eventBus.subscribe(actor, "")
+      context.become(receiverWhileJobIsRunning(start()))
+    case _: UnSubscribe =>
       Unit
   }
+
 }
 
 

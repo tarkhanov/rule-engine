@@ -1,4 +1,4 @@
-@(user: Option[String], section: String = "")(implicit messages: Messages, lang: Lang)
+@(user: Option[String], section: String = "")(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
 <nav>
     <div style="padding-left: 22px;">
         <ul>
@@ -45,7 +45,7 @@
     <div style="float: right;padding-top:16px">
         @helper.form(action = routes.LanguageController.changeLanguage()) {
         <select name="language" style="width: auto;" onchange="this.form.submit()">
-            @play.api.i18n.Lang.availables(play.api.Play.current).map { l =>
+            @availableLanguages.map { l =>
             <option value="@l.code" @(if(lang.code.startsWith(l.code)) "selected")>@Messages("language." + l.code)</option>
             }
         </select>

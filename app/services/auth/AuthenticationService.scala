@@ -7,8 +7,7 @@ import controllers.security.WebSecurity.Credentials
 import org.apache.commons.codec.digest.DigestUtils
 import services.auth.AuthenticationService.{AuthenticationException, UserNotFoundException}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -20,14 +19,14 @@ object AuthenticationService {
   class UserNotFoundException(message: String) extends RuntimeException(message)
 }
 
-class AuthenticationService[UserType <: AuthenticationUser](userService: AuthenticationUserService[UserType]) extends Authenticator[UserType] {
+abstract class AuthenticationService[UserType <: AuthenticationUser](userService: AuthenticationUserService[UserType]) extends Authenticator[UserType] {
 
-  def salt = Calendar.getInstance().get(Calendar.MILLISECOND).toString
+  def salt: String = Calendar.getInstance().get(Calendar.MILLISECOND).toString
 
   def encodePassword(salt: String, password: String): String =
     DigestUtils.md5Hex(salt + password)
 
-  override def authenticate(credentials: Credentials): Future[Try[UserType]] =
+  override def authenticate(credentials: Credentials)(implicit ec: ExecutionContext): Future[Try[UserType]] =
     userService.getUser(credentials.login).map {
       case Some(user) =>
         val encodedCredentialsPassword = encodePassword(user.salt, credentials.password)

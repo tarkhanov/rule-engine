@@ -1,6 +1,6 @@
 @(message: String,
   user: Option[String],
-  error: Option[String] = None)(implicit messages: Messages, lang: Lang)
+  error: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
 
 @inc.main("Welcome") {
 

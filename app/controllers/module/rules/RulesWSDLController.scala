@@ -2,19 +2,19 @@ package controllers.module.rules
 
 import javax.inject.Inject
 
-import controllers.{Global, RequestImplicits}
 import controllers.module.rules.RulesWSDLController.TypeNotFoundException
+import controllers.{InternationalInjectedController, Pages}
 import models.repository.rules.RulesModelXML
-import models.repository.types.TypesModel._
-import play.api.mvc.{Action, AnyContent, Controller, Result}
-import services.execution.{RulesWSDLDoc, SchemaAttribute, SchemaElement, SchemaType}
 import models.repository.types.TypeRepositoryRec
+import models.repository.types.TypesModel._
+import play.api.mvc._
+import services.execution.{RulesWSDLDoc, SchemaAttribute, SchemaElement, SchemaType}
 import services.rules.RulesService
 import services.types.TypesCacheService
 import services.types.TypesCacheService.TypeCacheType
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
  * Created by Sergey Tarkhanov on 7/2/2015.
@@ -24,10 +24,9 @@ object RulesWSDLController {
   class TypeNotFoundException(message: String) extends RuntimeException(message)
 }
 
-class RulesWSDLController @Inject()(rulesService: RulesService, typeDefinitionService: TypesCacheService)
-                                   (implicit ec: ExecutionContext) extends Controller with RequestImplicits {
+class RulesWSDLController @Inject()(rulesService: RulesService, typeDefinitionService: TypesCacheService) extends InternationalInjectedController {
 
-  private val defaultRedirect: Result = Redirect(Global.defaultLandingPage)
+  private val defaultRedirect: Result = Redirect(Pages.defaultLandingPage)
 
   private def createType(name: String, typeId: String, list: mutable.Map[String, Option[SchemaType]], typeCache: TypeCacheType): Future[SchemaElement] =
     typeId match {

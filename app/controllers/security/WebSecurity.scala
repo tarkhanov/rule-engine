@@ -1,12 +1,11 @@
 package controllers.security
 
-import controllers.Global
+import controllers.Pages
 import play.api.http.HttpVerbs
 import play.api.mvc._
 import services.auth.AuthenticationUser
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -22,7 +21,10 @@ object WebSecurity {
   class TryAuthenticatedRequest[A, U](val user: Try[U], request: Request[A]) extends WrappedRequest[A](request)
   class AuthenticatedRequest[A](val user: String, request: Request[A]) extends WrappedRequest[A](request)
 
-  def login[U <: AuthenticationUser](request: Request[RequestBody], credentials: Credentials, authenticator: Authenticator[U])(block: TryAuthenticatedRequest[RequestBody, U] => Result): Future[Result] = {
+  def login[U <: AuthenticationUser](request: Request[RequestBody], credentials: Credentials, authenticator: Authenticator[U])
+                                    (block: TryAuthenticatedRequest[RequestBody, U] => Result)
+                                    (implicit ec: ExecutionContext): Future[Result] = {
+
     authenticator.authenticate(credentials).map {
       case Success(user) =>
         val result = block(new TryAuthenticatedRequest(Success(user), request))
@@ -37,7 +39,7 @@ object WebSecurity {
     if (authenticatedSession.nonEmpty)
       block(new AuthenticatedRequest(authenticatedSession.get, request))
     else {
-      val redirect = Results.TemporaryRedirect(Global.loginPage.url)
+      val redirect = Results.TemporaryRedirect(Pages.loginPage.url)
       val result = if (request.method == HttpVerbs.GET)
         redirect.flashing("redirect" -> request.uri)
       else

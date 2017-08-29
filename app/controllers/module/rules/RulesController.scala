@@ -2,34 +2,31 @@ package controllers.module.rules
 
 import javax.inject.Inject
 
-import controllers.RequestImplicits
-import controllers.security.AuthenticatedAction
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json._
-import play.api.mvc.Controller
+import controllers.InternationalInjectedController
+import controllers.security.AuthAction
 import models.repository.rules.RulesModel._
 import models.repository.rules.RulesModelXML
 import persistence.repository.Repository
+import play.api.libs.json._
 import services.rules.RulesService
 import services.rules.RulesService.RuleNotFound
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
  * Created by Sergey Tarkhanov on 5/30/2015.
  */
 
-class RulesController @Inject()(val messagesApi: MessagesApi, rules: RulesService)(implicit ec: ExecutionContext)
-  extends Controller with I18nSupport with RequestImplicits {
+class RulesController @Inject()(authenticatedAction: AuthAction, rules: RulesService) extends InternationalInjectedController {
 
-  def create = AuthenticatedAction async {
+  def create = authenticatedAction async {
     implicit request =>
       rules.create(request.user).map {
         rec => Redirect(routes.RulesController.open(rec))
       }
   }
 
-  def open(id: Long) = AuthenticatedAction async {
+  def open(id: Long) = authenticatedAction async {
     implicit request =>
       rules.getRecordDetails(id, request.user).map {
         case Some(rec) =>
@@ -41,7 +38,7 @@ class RulesController @Inject()(val messagesApi: MessagesApi, rules: RulesServic
       }
   }
 
-  def edit(id: Long) = AuthenticatedAction async {
+  def edit(id: Long) = authenticatedAction async {
     implicit request =>
       rules.edit(id, request.user).map {
         rec => Redirect(routes.RulesController.open(rec))
@@ -50,7 +47,7 @@ class RulesController @Inject()(val messagesApi: MessagesApi, rules: RulesServic
       }
   }
 
-  def save(id: Long) = AuthenticatedAction.async(parse.json) {
+  def save(id: Long) = authenticatedAction.async(parse.json) {
     request =>
       request.body.result match {
         case JsDefined(jsonTypeDefinition) =>

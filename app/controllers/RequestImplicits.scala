@@ -1,6 +1,6 @@
 package controllers
 
-import play.api.mvc.{Result, Request}
+import play.api.mvc.{Request, Result}
 
 /**
  * Created by Sergey Tarkhanov on 7/31/2015.

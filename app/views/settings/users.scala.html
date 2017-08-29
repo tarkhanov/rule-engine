@@ -1,6 +1,6 @@
 @(user: String,
   userSelection: controllers.SettingsController.SettingsUserList,
-  log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+  log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
 
 @inc.main(Messages("settings.title")) {
 

@@ -2,7 +2,7 @@
 readOnly: Boolean,
 details: models.repository.types.TypeRepositoryRecDetails,
 fields: List[models.repository.types.TypesModel.Field],
-log: Option[String] = None)(implicit messages: Messages, lang: Lang)
+log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
 
 @inc.main("Type: " + details.record.name) {
 

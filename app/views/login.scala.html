@@ -1,4 +1,4 @@
-@(message: String, user: Option[String], error: Option[String], redirect: Option[String])(implicit messages: Messages, lang: Lang)
+@(message: String, user: Option[String], error: Option[String], redirect: Option[String])(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
 
 @inc.main("Login") {
 

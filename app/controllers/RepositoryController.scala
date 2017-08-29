@@ -2,9 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import controllers.security.AuthenticatedAction
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.Controller
+import controllers.security.AuthAction
 import services.RepositoryService
 
 import scala.concurrent.ExecutionContext
@@ -12,11 +10,11 @@ import scala.concurrent.ExecutionContext
 /**
  * Created by Sergey Tarkhanov on 4/5/2015.
  */
-class RepositoryController @Inject()(val messagesApi: MessagesApi, repositoryService: RepositoryService)(implicit ec: ExecutionContext) extends Controller with I18nSupport with RequestImplicits {
+class RepositoryController @Inject()(authenticatedAction: AuthAction, repositoryService: RepositoryService)(implicit ec: ExecutionContext) extends InternationalInjectedController {
 
-  private val defaultRedirect = Redirect(Global.defaultLandingPage)
+  private val defaultRedirect = Redirect(Pages.defaultLandingPage)
 
-  def dashboard(folder: Option[Long], pageStart: Option[Int], pageSize: Option[Int], allRecords: Option[Boolean]) = AuthenticatedAction async {
+  def dashboard(folder: Option[Long], pageStart: Option[Int], pageSize: Option[Int], allRecords: Option[Boolean]) = authenticatedAction async {
     implicit request =>
 
       val recordFolder = folder.orElse(sessionLong("repoFolder"))
@@ -36,7 +34,7 @@ class RepositoryController @Inject()(val messagesApi: MessagesApi, repositorySer
       } yield result
   }
 
-  def remove(recordId: Long) = AuthenticatedAction async {
+  def remove(recordId: Long) = authenticatedAction async {
     implicit request =>
       repositoryService.remove(Set(recordId), request.user).map {
         _ => defaultRedirect
@@ -45,7 +43,7 @@ class RepositoryController @Inject()(val messagesApi: MessagesApi, repositorySer
       }
   }
 
-  def sequence(recordId: Long, pageStart: Option[Int], pageSize: Option[Int]) = AuthenticatedAction async {
+  def sequence(recordId: Long, pageStart: Option[Int], pageSize: Option[Int]) = authenticatedAction async {
     implicit request =>
 
       val historyPageStart = pageStart.orElse(sessionInt("historyPageStart")).map(_.max(1)).getOrElse(1) - 1

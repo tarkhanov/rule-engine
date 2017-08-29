@@ -2,24 +2,24 @@ package services.execution
 
 import javax.inject.{Inject, Singleton}
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.scalalogging.StrictLogging
+import models.repository.rules.RulesModel._
 import models.repository.rules.RulesModelXML
+import models.repository.types.TypeRepositoryRec
+import models.repository.types.TypesModel.{Type, TypeDefs}
 import org.python.core._
 import org.python.util.PythonInterpreter
 import services.execution.RulesPythonExecutor._
-import models.repository.rules.RulesModel._
-import models.repository.types.TypesModel.{Type, TypeDefs}
-import models.repository.types.TypeRepositoryRec
 import services.types.TypesCacheService
 import services.types.TypesCacheService.TypeCacheType
 
-import scala.collection.JavaConversions
+import scala.collection.JavaConverters
 import scala.collection.immutable.Seq
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -44,7 +44,7 @@ object RulesPythonExecutor {
 @Singleton
 class RulesPythonExecutor @Inject()(typeDefinitionService: TypesCacheService, actorSystem: ActorSystem)(implicit ec: ExecutionContext) extends StrictLogging {
 
-  private val proxyFactory = actorSystem.actorOf(Props(classOf[CreatePyProxyActor], getClass.getClassLoader), "PythonStructureProxyActor")
+  private val proxyFactory = actorSystem.actorOf(CreatePyProxyActor.props(getClass.getClassLoader), "PythonStructureProxyActor")
 
   private implicit val timeout: Timeout = Timeout(5 seconds)
 
@@ -74,7 +74,7 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypesCacheService, ac
             resolveTypeIdToPyObject(name, itemType, getLevelItems, types)
           }
         }
-        def convertSeqToPyList(spo: Seq[PyObject]) = new PyList(JavaConversions.asJavaCollection(spo))
+        def convertSeqToPyList(spo: Seq[PyObject]) = new PyList(JavaConverters.asJavaCollection(spo))
         Future.sequence(list).map(_.map(convertSeqToPyList))
 
       case otherType =>
@@ -196,7 +196,7 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypesCacheService, ac
       case TypeDefs.isList(itemType) =>
         value match {
           case pySeq: PySequence =>
-            val scalaIterable = JavaConversions.iterableAsScalaIterable(pySeq.asIterable())
+            val scalaIterable = JavaConverters.iterableAsScalaIterable(pySeq.asIterable())
             val fs = scalaIterable.map(item => convertResponse(item, itemType, types)).toList
             Future.sequence(fs).map(_.flatten)
 

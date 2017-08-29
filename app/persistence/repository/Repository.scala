@@ -8,13 +8,13 @@ import com.typesafe.scalalogging.StrictLogging
 import models.repository._
 import org.hashids.Hashids
 import persistence.DBUtil
-import play.api.db.slick.DatabaseConfigProvider
-import slick.dbio.Effect.{Read, Write}
-import slick.driver.JdbcProfile
 import persistence.repository.Repository._
 import persistence.repository.rules.RulesRepository
 import persistence.repository.types.TypesRepository
-import play.api.Play
+import play.api.Configuration
+import play.api.db.slick.DatabaseConfigProvider
+import slick.dbio.Effect.{Read, Write}
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,12 +25,12 @@ object Repository {
 }
 
 @Singleton
-class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBUtil)(implicit ec: ExecutionContext) extends StrictLogging {
+class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBUtil, configuration: Configuration)(implicit ec: ExecutionContext) extends StrictLogging {
 
   val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
-  import driver.api._
+  import profile.api._
 
   class ActionTable(tag: Tag) extends Table[ActionRec](tag, "REPOSITORY_ACTION") {
 
@@ -121,9 +121,9 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
     /* Get count of items to be displayed */
     def recordsToDisplayForCount(sessionIdOption: Option[Long]) = sessionIdOption match {
       case Some(sessionId) =>
-        recordsToDisplayListOfGroups(sessionId) map { case (f, _) => f.seq } countDistinct
+        recordsToDisplayListOfGroups(sessionId).map { case (f, _) => f.seq }.countDistinct
       case None =>
-        filesInCurrentFolder(folderId) filter (_.active) map (_.seq) countDistinct // groupBy (_.seq) map { case (seq, group) => seq }
+        filesInCurrentFolder(folderId).filter(_.active).map(_.seq).countDistinct // groupBy (_.seq) map { case (seq, group) => seq }
     }
 
     def actionAndSessionTable(files: Traversable[Long]) =
@@ -306,7 +306,7 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
     * Create new entry action
     */
 
-  val hashIds = Hashids(Play.current.configuration.getString("play.crypto.secret").get)
+  private val hashIds = new Hashids(configuration.get[String]("play.crypto.secret"))
 
   def createNewEntryAction(newSeq: Option[String], kind: String, name: String, user: String, parentId: Option[Long] = None): DBIOAction[(Long, Long), NoStream, Read with Write with Effect] = {
 

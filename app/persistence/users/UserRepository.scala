@@ -6,7 +6,7 @@ import com.typesafe.scalalogging.StrictLogging
 import models.users.User
 import persistence.DBUtil
 import play.api.db.slick.DatabaseConfigProvider
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -16,7 +16,7 @@ class UserRepository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil:
   private val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
-  import driver.api._
+  import profile.api._
 
   private class UserTable(tag: Tag) extends Table[User](tag, "USER") {
     def login = column[String]("USERNAME", O.PrimaryKey, O.Length(50))
