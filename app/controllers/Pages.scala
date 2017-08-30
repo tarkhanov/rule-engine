@@ -1,9 +1,5 @@
 package controllers
 
-/**
- * Created by Sergey Tarkhanov on 1/28/2015.
- */
-
 import play.api.mvc._
 
 object Pages {

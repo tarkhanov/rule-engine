@@ -9,9 +9,6 @@ import services.RepositoryService
 
 import scala.concurrent.ExecutionContext
 
-/**
- * Created by Sergey Tarkhanov on 7/31/2015.
- */
 class SessionController @Inject()(authenticatedAction: AuthAction, repositoryService: RepositoryService)(implicit ex: ExecutionContext) extends InjectedController with I18nSupport with RequestImplicits {
 
   private val defaultRedirect = Redirect(Pages.defaultLandingPage)

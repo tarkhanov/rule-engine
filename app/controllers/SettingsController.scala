@@ -7,10 +7,6 @@ import controllers.security.AuthAction
 import models.users.User
 import services.UserService
 
-/**
- * Created by Sergey Tarkhanov on 7/29/2015.
- */
-
 object SettingsController {
 
   case class SettingsUserList(users: Seq[User], count: Int, pageStart: Int, pageSize: Int)

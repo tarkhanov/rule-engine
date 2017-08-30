@@ -38,7 +38,7 @@ class RulesRepository(val repository: Repository, typesRepository: TypesReposito
   val ruleRepository = TableQuery[RuleRepositoryTable]
 
   def init(): Unit = {
-    dbUtil.ifNoTableOf(ruleRepository)(db run ruleRepository.schema.create)
+    dbUtil.ifNoTable(ruleRepository)(db run ruleRepository.schema.create)
   }
 
   def create(newSeq: Option[String], newRec: RuleRepositoryRec, user: String): Future[Long] = {

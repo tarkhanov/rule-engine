@@ -10,8 +10,6 @@ import scala.concurrent.Future
 @Singleton
 class RepositoryService @Inject()(repository: Repository) {
 
-  def init() = repository.init()
-
   def list(folderId: Option[Long] = None, currentUser: String, offset: Int, length: Int): Future[ListRepository] = {
     repository.list(folderId, currentUser, offset, length)
   }

@@ -7,9 +7,6 @@ import services.RepositoryService
 
 import scala.concurrent.ExecutionContext
 
-/**
- * Created by Sergey Tarkhanov on 4/5/2015.
- */
 class RepositoryController @Inject()(authenticatedAction: AuthAction, repositoryService: RepositoryService)(implicit ec: ExecutionContext) extends InternationalInjectedController {
 
   private val defaultRedirect = Redirect(Pages.defaultLandingPage)

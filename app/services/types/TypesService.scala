@@ -12,9 +12,11 @@ class TypesService @Inject()(repository: Repository) extends ConfigureTypesServi
 
   private val typesRepository = repository.typesRepository
 
-  def lookupId(longId: Long): Future[Option[TypeRepositoryRec]] = typesRepository.lookupById(longId)
+  def lookupId(longId: Long): Future[Option[TypeRepositoryRec]] =
+    typesRepository.lookupById(longId)
 
-  def lookupSeq(seq: String): Future[Option[TypeRepositoryRec]] = typesRepository.lookupBySeq(seq)
+  def lookupSeq(seq: String): Future[Option[TypeRepositoryRec]] =
+    typesRepository.lookupBySeq(seq)
 
   override def create(newSeq: Option[String], newRec: TypeRepositoryRec, user: String): Future[Long] =
     typesRepository.create(newSeq, newRec, user)

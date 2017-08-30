@@ -36,7 +36,7 @@ class TypesRepository(val repository: Repository, dbUtil: DBUtil)(implicit ec: E
   val typeTable = TableQuery[TypeRepositoryTable]
 
   def init(): Unit = {
-    dbUtil.ifNoTableOf(typeTable)(db run typeTable.schema.create)
+    dbUtil.ifNoTable(typeTable)(db run typeTable.schema.create)
   }
 
   def create(newSeq: Option[String], newRec: TypeRepositoryRec, user: String): Future[Long] = {

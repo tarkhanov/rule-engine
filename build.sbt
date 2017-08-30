@@ -25,4 +25,3 @@ libraryDependencies += "com.typesafe.play" %% "play-slick" %  "3.0.1"
 
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % Test
-//libraryDependencies += "com.h2database" % "h2" % "1.4.194"

@@ -2,9 +2,6 @@ package controllers
 
 import play.api.mvc.{Request, Result}
 
-/**
- * Created by Sergey Tarkhanov on 7/31/2015.
- */
 trait RequestImplicits {
 
   implicit class RichRequest(request: Request[_]) {

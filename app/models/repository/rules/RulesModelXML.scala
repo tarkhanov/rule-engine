@@ -9,10 +9,6 @@ import models.repository.rules.RulesModel._
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, Node, XML}
 
-/**
- * Created by Sergey Tarkhanov on 6/4/2015.
- */
-
 object RulesModelXML {
 
   lazy val validator: Validator = {

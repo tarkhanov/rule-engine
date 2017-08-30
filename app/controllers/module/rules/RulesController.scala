@@ -13,10 +13,6 @@ import services.rules.RulesService.RuleNotFound
 
 import scala.concurrent.Future
 
-/**
- * Created by Sergey Tarkhanov on 5/30/2015.
- */
-
 class RulesController @Inject()(authenticatedAction: AuthAction, rules: RulesService) extends InternationalInjectedController {
 
   def create = authenticatedAction async {

@@ -12,10 +12,6 @@ import services.monitoring.MonitoringService
 
 import scala.concurrent.Future
 
-/**
- * Created by Sergey Tarkhanov on 8/14/2015.
- */
-
 object MonitoringController {
 
 //  object MonitoringWSActor {

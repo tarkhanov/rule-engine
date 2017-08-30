@@ -25,7 +25,10 @@ object Repository {
 }
 
 @Singleton
-class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBUtil, configuration: Configuration)(implicit ec: ExecutionContext) extends StrictLogging {
+class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider,
+                           dbUtil: DBUtil,
+                           configuration: Configuration)
+                          (implicit ec: ExecutionContext) extends StrictLogging {
 
   val dbConfig = dbConfigProvider.get[JdbcProfile]
 
@@ -72,8 +75,6 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
     def * = (id, user, creationDate, commitDate) <> (SessionRec.tupled, SessionRec.unapply)
   }
 
-  def now = new Timestamp(new Date().getTime)
-
   val repositoryTable = TableQuery[RepositoryTable]
   val actionTable = TableQuery[ActionTable]
   val sessionTable = TableQuery[SessionTable]
@@ -83,15 +84,17 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
   val rulesRepository = new RulesRepository(this, typesRepository, dbUtil)
 
   def init(): Unit = {
-    dbUtil.ifNoTableOf(repositoryTable)(db run repositoryTable.schema.create)
-    dbUtil.ifNoTableOf(actionTable)(db run actionTable.schema.create)
-    dbUtil.ifNoTableOf(sessionTable)(db run sessionTable.schema.create)
-    dbUtil.ifNoTableOf(sequenceTable)(db run sequenceTable.schema.create)
+    dbUtil.ifNoTable(repositoryTable)(db run repositoryTable.schema.create)
+    dbUtil.ifNoTable(actionTable)(db run actionTable.schema.create)
+    dbUtil.ifNoTable(sessionTable)(db run sessionTable.schema.create)
+    dbUtil.ifNoTable(sequenceTable)(db run sequenceTable.schema.create)
     typesRepository.init()
     rulesRepository.init()
   }
 
   init()
+
+  def now = new Timestamp(new Date().getTime)
 
   /**
    * List operation
@@ -115,15 +118,16 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
           filesInCurrentFolder(folderId) filter (_.active)
       }
       // Extract max item and count of items in sequences
-      query groupBy (_.seq) map { case (seq, group) => (seq, group.map(_.id).max, group.map(_.id).countDistinct) }
+      query groupBy (_.seq) map { case (seq, group) => (seq, group.map(_.id).max, group.map(_.id).countDistinct) } // TODO: distinct.length currently fails in slick 3.2.1
     }
 
     /* Get count of items to be displayed */
     def recordsToDisplayForCount(sessionIdOption: Option[Long]) = sessionIdOption match {
       case Some(sessionId) =>
-        recordsToDisplayListOfGroups(sessionId).map { case (f, _) => f.seq }.countDistinct
+        recordsToDisplayListOfGroups(sessionId).map { case (f, _) => f.seq }.countDistinct // TODO: distinct.length currently fails in slick 3.2.1
       case None =>
-        filesInCurrentFolder(folderId).filter(_.active).map(_.seq).countDistinct // groupBy (_.seq) map { case (seq, group) => seq }
+        filesInCurrentFolder(folderId).filter(_.active).map(_.seq).countDistinct // TODO: distinct.length currently fails in slick 3.2.1
+        // groupBy (_.seq) map { case (seq, group) => seq }
     }
 
     def actionAndSessionTable(files: Traversable[Long]) =
@@ -133,15 +137,24 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
 
     val query = for {
       session <- getSessionOptionAction(currentUser)
-      records <- recordsToDisplay(session.map(_.id)).join(repositoryTable).on { case ((seq, ver, count), f) => seq === f.seq && ver === f.id }.sortBy { case (_, f) => f.name }.drop(offset).take(length).result
+      records <- recordsToDisplay(session.map(_.id))
+        .join(repositoryTable).on { case ((seq, ver, _), f) => seq === f.seq && ver === f.id }
+        .sortBy { case (_, f) => f.name }
+        .drop(offset).take(length).result
       recordsCount <- recordsToDisplayForCount(session.map(_.id)).result
       ids = records.map { case (_, f) => f.id }
-      actions <- actionAndSessionTable(ids).filter { case (a, s) => s.user === currentUser && a.action.inSet(displayActions) }.map { case (a, _) => a }.result
+      actions <- actionAndSessionTable(ids)
+        .filter { case (a, s) => s.user === currentUser && a.action.inSet(displayActions) }
+        .map { case (a, _) => a }.result
       sequences = records.map { case (_, f) => f.seq }
-      actionUsers <- repositoryTable.filter(f => f.seq inSet sequences).join(actionTable.join(sessionTable.filter(s => s.user =!= currentUser && s.commitDate.isEmpty)) on (_.session === _.id)).on { case (f, (a, _)) => f.id === a.target }.map { case (f, (_, s)) => (f.seq, s.user) }.result
+      actionUsers <- repositoryTable
+        .filter(f => f.seq inSet sequences)
+        .join(actionTable.join(sessionTable.filter(s => s.user =!= currentUser && s.commitDate.isEmpty)) on (_.session === _.id))
+        .on { case (f, (a, _)) => f.id === a.target }
+        .map { case (f, (_, s)) => (f.seq, s.user) }.result
     } yield (session, records, recordsCount, actions, actionUsers)
 
-    db.run(query.transactionally) map {
+    db.run(query.transactionally).map {
       case (session, metaAndFiles, recordsCount, actions, actionUsers) =>
         val actionBuffer = actions.groupBy(_.target)
         val foreignersBuffer = actionUsers.groupBy { case (seq, _) => seq }.mapValues(s => s.map{ case (_, user) => user })
@@ -231,7 +244,9 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
     val query = for {
       session <- autoCreateSessionIdAction(currentUser)
       // Get ids of files created during current session
-      newItemsToRemove <- repositoryTable.filter(_.id.inSet(ids)).join(createActionQuery.filter(_.session === session)).on(_.id === _.target).map { case (f, _) => f.id }.result
+      newItemsToRemove <- repositoryTable.filter(_.id.inSet(ids))
+        .join(createActionQuery.filter(_.session === session)).on(_.id === _.target)
+        .map { case (f, _) => f.id }.result
       // Remove files created during current session
       _ <- repositoryTable.filter(_.id inSet newItemsToRemove).delete
       // if no CREATE action in current session
@@ -254,7 +269,7 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
       currentOption <- repositoryTable.filter(_.id === id).result.headOption
       current = currentOption.getOrElse(throw new IllegalArgumentException("Not found"))
       history <- repositoryTable.filter(_.seq === current.seq).sortBy(_.id.desc).drop(from).take(length).result
-      historyCount <- repositoryTable.filter(_.seq === current.seq).map(_.id).countDistinct.result
+      historyCount <- repositoryTable.filter(_.seq === current.seq).map(_.id).countDistinct.result // TODO: distinct.length currently fails in slick 3.2.1
       actions <- actionTable.filter(_.target inSet history.map(_.id)).sortBy(_.id.asc).join(sessionTable).on(_.session === _.id).result
     } yield (session, current, history, historyCount, actions)
 
@@ -308,7 +323,11 @@ class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil: DBU
 
   private val hashIds = new Hashids(configuration.get[String]("play.crypto.secret"))
 
-  def createNewEntryAction(newSeq: Option[String], kind: String, name: String, user: String, parentId: Option[Long] = None): DBIOAction[(Long, Long), NoStream, Read with Write with Effect] = {
+  def createNewEntryAction(newSeq: Option[String],
+                           kind: String,
+                           name: String,
+                           user: String,
+                           parentId: Option[Long] = None): DBIOAction[(Long, Long), NoStream, Read with Write with Effect] = {
 
     def newSequenceAction = (sequenceTable.returning(sequenceTable.map(_.id)) +=(0L, 1L)).map(id => "CM" + hashIds.encode(id))
 

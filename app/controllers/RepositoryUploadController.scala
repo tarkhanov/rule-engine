@@ -15,9 +15,6 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-/**
- * Created by Sergey Tarkhanov on 8/13/2015.
- */
 class RepositoryUploadController @Inject()(authenticatedAction: AuthAction, configurationService: ConfigurationService) extends InternationalInjectedController {
 
   private val uploadControllerIndex = Redirect(routes.RepositoryUploadController.upload())

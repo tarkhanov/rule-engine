@@ -28,7 +28,7 @@ class UserRepository @Inject()(dbConfigProvider: DatabaseConfigProvider, dbUtil:
   private val users = TableQuery[UserTable]
 
   def init(): Unit = {
-    dbUtil.ifNoTableOf(users)(db run users.schema.create)
+    dbUtil.ifNoTable(users)(db run users.schema.create)
   }
 
   init()

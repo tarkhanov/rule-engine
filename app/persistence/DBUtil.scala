@@ -21,7 +21,7 @@ class DBUtil @Inject()(dbConfigProvider: DatabaseConfigProvider)(implicit ec: Ex
 
   private lazy val list = Await.result(db run MTable.getTables, 5.seconds)
 
-  def ifNoTableOf[A <: AbstractTable[_]](table: TableQuery[A])(block: => Unit): Unit = {
+  def ifNoTable[A <: AbstractTable[_]](table: TableQuery[A])(block: => Unit): Unit = {
     val exists = list.exists(_.name.name.compareToIgnoreCase(table.baseTableRow.tableName) == 0)
     if (!exists) {
       logger.info("Creating table " + table.baseTableRow.tableName + "...")

@@ -8,10 +8,6 @@ import services.auth.AuthenticationUser
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-/**
- * Created by Sergey Tarkhanov on 1/29/2015.
- */
-
 object WebSecurity {
 
   case class Credentials(login: String, password: String)

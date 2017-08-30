@@ -7,10 +7,6 @@ import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-/**
- * Created by Sergey Tarkhanov on 1/29/2015.
- */
-
 class AuthAction @Inject()(val parser: BodyParsers.Default)
                           (implicit val executionContext: ExecutionContext)
                           extends ActionBuilder[AuthenticatedRequest, AnyContent] {

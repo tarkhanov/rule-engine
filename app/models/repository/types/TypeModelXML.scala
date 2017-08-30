@@ -4,9 +4,6 @@ import scala.collection.Seq
 import scala.xml.{Node, NodeSeq}
 import models.repository.types.TypesModel._
 
-/**
- * Created by Sergey Tarkhanov on 5/3/2015.
- */
 object TypeModelXML {
 
   def readTypes(root: Node): List[Type] =
