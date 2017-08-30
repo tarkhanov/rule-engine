@@ -12,11 +12,8 @@ libraryDependencies += guice
 libraryDependencies += "commons-io" % "commons-io" % "2.4"
 
 libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.20.0"
-//libraryDependencies += "com.timesprint" %% "hashids-scala" % "1.0.0"
 libraryDependencies += "org.hashids" % "hashids" % "1.0.3"
 
-
-libraryDependencies += "org.javassist" % "javassist" % "3.21.0-GA"
 libraryDependencies += "org.python" % "jython-standalone" % "2.7.0"
 
 libraryDependencies += "com.mohiva" %% "play-html-compressor" % "0.7.1"

@@ -28,6 +28,8 @@ object RulesPythonExecutor {
 
   type RuleResultType = List[Either[String, Map[String, AnyRef]]]
 
+  class RuleExecutionException(message: String, ex: Throwable) extends Exception(message, ex)
+
 }
 
 @Singleton
@@ -57,37 +59,44 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypeDefinitionService
 
     logger.debug("Execute Rule '{}'", rule.name.getOrElse("[Untitled]"))
 
-    val pi = new PythonInterpreter()
+    try {
 
-    pi.exec(arguments)
+      val pi = new PythonInterpreter()
 
-    val conditionResult = try {
-      val result = pi.eval(rule.condition.code.trim)
-      logger.debug("Invocation result is {}", result)
-      ExecutionResult(result.equals(new PyBoolean(true)))
-    }
-    catch {
-      case ex: Throwable =>
-        logger.debug("Exception during rule invocation: {}, {}", ex.getClass.getName, ex.getMessage)
-        ExecutionResult(false, List(ex))
-    }
+      pi.exec(arguments)
 
-    val bodyResult = if (conditionResult.value) {
-      val result: BodyResult = try {
-        pi.exec(rule.body.code.trim)
-        ExecutionResult(results.map(r => r.name -> convertResponse(pi.get(r.name), r.`type`, types)))
+      val conditionResult = try {
+        val result = pi.eval(rule.condition.code.trim)
+        logger.debug("Invocation result is {}", result)
+        ExecutionResult(result.equals(new PyBoolean(true)))
       }
       catch {
-        case ex: Throwable => ExecutionResult(List(), List(ex))
+        case ex: Throwable =>
+          logger.debug("Exception during rule invocation: {}, {}", ex.getClass.getName, ex.getMessage)
+          ExecutionResult(false, List(ex))
       }
-      Some(result)
+
+      val bodyResult = if (conditionResult.value) {
+        val result: BodyResult = try {
+          pi.exec(rule.body.code.trim)
+          ExecutionResult(results.map(r => r.name -> convertResponse(pi.get(r.name), r.`type`, types)))
+        }
+        catch {
+          case ex: Throwable => ExecutionResult(List(), List(ex))
+        }
+        Some(result)
+      }
+      else
+        None
+
+      pi.close()
+
+      (rule, conditionResult, bodyResult)
     }
-    else
-      None
-
-    pi.close()
-
-    (rule, conditionResult, bodyResult)
+    catch {
+      case pyException: PyException =>
+        throw new RuleExecutionException("Exception during rule execution: " + pyException.toString, pyException)
+    }
   }
 
   def convertAnyTypeResponse(value: PyObject): Future[RuleResultType] = {

@@ -2,15 +2,16 @@ package controllers.module.rules
 
 import javax.inject.Inject
 
+import com.typesafe.scalalogging.StrictLogging
 import controllers.InternationalInjectedController
 import models.repository.rules.RulesModel.Rule
-import services.execution.RulesPythonExecutor.{BodyResult, ConditionResult, RequestDataType, RuleResultType}
+import services.execution.RulesPythonExecutor._
 import services.rules.RulesService
 
 import scala.concurrent.Future
 import scala.xml.{Elem, Node}
 
-class RulesSOAPController @Inject()(rules: RulesService) extends InternationalInjectedController {
+class RulesSOAPController @Inject()(rules: RulesService) extends InternationalInjectedController with StrictLogging {
 
   def invoke(ruleSetFilter: String) = Action.async(parse.tolerantXml) {
     request =>
@@ -22,8 +23,13 @@ class RulesSOAPController @Inject()(rules: RulesService) extends InternationalIn
         .flatMap(r => Future.sequence(r.map(rule)))
         .map(list => Ok(successEnvelope(list)).as("text/xml"))
         .recover {
-          case ex: IllegalArgumentException => BadRequest(failureEnvelope(1, ex.getMessage)).as("text/xml")
-      }
+          case ex: IllegalArgumentException =>
+            logger.debug("Exception during RuleSet execution", ex)
+            BadRequest(failureEnvelope(1, ex.getMessage)).as("text/xml")
+          case ex: RuleExecutionException =>
+            logger.debug("Exception during RuleSet execution", ex)
+            BadRequest(failureEnvelope(2, ex.getMessage)).as("text/xml")
+        }
   }
 
   private def isElem(node: Node): Boolean =
