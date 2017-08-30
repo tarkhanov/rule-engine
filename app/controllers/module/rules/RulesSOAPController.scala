@@ -10,9 +10,6 @@ import services.rules.RulesService
 import scala.concurrent.Future
 import scala.xml.{Elem, Node}
 
-/**
- * Created by Sergey Tarkhanov on 6/3/2015.
- */
 class RulesSOAPController @Inject()(rules: RulesService) extends InternationalInjectedController {
 
   def invoke(ruleSetFilter: String) = Action.async(parse.tolerantXml) {

@@ -2,14 +2,11 @@ package services.execution
 
 import scala.xml.{Node, PrettyPrinter}
 
-/**
- * Created by Sergey Tarkhanov on 6/3/2015.
- */
-case class SchemaElement(name: String, typeDef: Either[String, SchemaType], minOccurs: Option[Int] = None, maxOccurs: Option[Int] = None)
-case class SchemaAttribute(name: String, typeDef: Either[String, SchemaType], required: Boolean)
-case class SchemaType(name: Option[String], elements: List[SchemaElement], attributes: List[SchemaAttribute] = List())
-
 object RulesWSDLDoc {
+
+  case class SchemaElement(name: String, typeDef: Either[String, SchemaType], minOccurs: Option[Int] = None, maxOccurs: Option[Int] = None)
+  case class SchemaAttribute(name: String, typeDef: Either[String, SchemaType], required: Boolean)
+  case class SchemaType(name: Option[String], elements: List[SchemaElement], attributes: List[SchemaAttribute] = List())
 
   private def location(serviceFilter: String) = s"https://localhost/interface/rules/$serviceFilter/soap"
 

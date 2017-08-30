@@ -2,30 +2,19 @@ package services.execution
 
 import javax.inject.{Inject, Singleton}
 
-import akka.actor.ActorSystem
-import akka.pattern.ask
-import akka.util.Timeout
 import com.typesafe.scalalogging.StrictLogging
-import models.repository.rules.RulesModel._
+import models.repository.rules.RulesModel.{Result, Rule}
 import models.repository.rules.RulesModelXML
 import models.repository.types.TypeRepositoryRec
 import models.repository.types.TypesModel.{Type, TypeDefs}
 import org.python.core._
 import org.python.util.PythonInterpreter
 import services.execution.RulesPythonExecutor._
-import services.types.TypesCacheService
-import services.types.TypesCacheService.TypeCacheType
+import services.types.TypeDefinitionService
+import services.types.TypeDefinitionService.TypeCacheType
 
 import scala.collection.JavaConverters
-import scala.collection.immutable.Seq
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
-
-/**
- * Created by Sergey Tarkhanov on 6/9/2015.
- */
 
 object RulesPythonExecutor {
 
@@ -42,65 +31,7 @@ object RulesPythonExecutor {
 }
 
 @Singleton
-class RulesPythonExecutor @Inject()(typeDefinitionService: TypesCacheService, actorSystem: ActorSystem)(implicit ec: ExecutionContext) extends StrictLogging {
-
-  private val proxyFactory = actorSystem.actorOf(CreatePyProxyActor.props(getClass.getClassLoader), "PythonStructureProxyActor")
-
-  private implicit val timeout: Timeout = Timeout(5 seconds)
-
-  def createProxy(name: String, structure: PythonStructure): Future[PyProxy] =
-    (proxyFactory ask CreatePyProxy(name, structure)).mapTo[PyProxy]
-
-  // Execute ------------------------------------------------------------
-
-  private def resolveTypeIdToPyObject(name: String, typeId: String, requestDataValues: String => RequestDataValueType, types: TypeCacheType): Future[Seq[PyObject]] = {
-    typeId match {
-      case "int" =>
-        val integerValue = Try(requestDataValues(name).flatMap(_.left.toOption.map(v => Integer.parseInt(v))))
-        integerValue match {
-          case Success(value) => Future.successful(value.map { i => new PyInteger(i) })
-          case Failure(ex) => Future.failed(new IllegalArgumentException("Unable to parse integer value", ex))
-        }
-
-      case "string" =>
-        val stringValue = requestDataValues(name).flatMap(_.left.toOption)
-        Future.successful(stringValue.map { s => new PyString(s) })
-
-      case TypeDefs.isList(itemType) =>
-        val list: Seq[Future[Seq[PyObject]]] = requestDataValues(name + "s").map {
-          i => {
-            val is = i.right.map(_.asInstanceOf[RequestDataType]).right.toOption
-            val getLevelItems = (name: String) => is.map(_.getOrElse(name, Seq.empty)).getOrElse(Seq.empty)
-            resolveTypeIdToPyObject(name, itemType, getLevelItems, types)
-          }
-        }
-        def convertSeqToPyList(spo: Seq[PyObject]) = new PyList(JavaConverters.asJavaCollection(spo))
-        Future.sequence(list).map(_.map(convertSeqToPyList))
-
-      case otherType =>
-        typeDefinitionService.typeDefinitionLookup(otherType, types).flatMap {
-          case Some((record: TypeRepositoryRec, typeDef: Type)) =>
-            val mapOfFields = requestDataValues(name).headOption.map(_.right.get.asInstanceOf[RequestDataType])
-            val pyFieldsFutures = typeDef.fields.map(f => {
-              def getLevelField(fieldName: String) = mapOfFields.map(_.getOrElse(fieldName, Seq.empty).take(1)).getOrElse(Seq.empty) // Get 1st argument of structure
-              resolveTypeIdToPyObject(f.name, f.typeDef, getLevelField, types).map(f.name -> _.headOption.orNull)
-            })
-            Future.sequence(pyFieldsFutures).flatMap {
-              pyFields => createProxy("PyProxy_" + typeDef.name + "_" + record.id, pyFields.toMap).map(Seq(_))
-            }
-          case _ =>
-            throw new IllegalStateException("Type not found: " + otherType)
-        }
-    }
-  }
-
-  private def generateArguments(requestData: RequestDataType, arguments: List[Argument], types: TypeCacheType): Future[Map[String, PyObject]] = {
-    val futures = arguments.map(arg => {
-      val values = (argName: String) => requestData.getOrElse(argName, Seq.empty).take(1)
-      resolveTypeIdToPyObject(arg.name, arg.`type`, values, types).map(arg.name -> _)
-    })
-    Future.sequence(futures).map(_.toMap.mapValues(_.headOption.orNull))
-  }
+class RulesPythonExecutor @Inject()(typeDefinitionService: TypeDefinitionService)(implicit ec: ExecutionContext) extends StrictLogging {
 
   def execute(requestData: RequestDataType, id: Long, definition: String): Future[List[(Rule, ConditionResult, Option[BodyResult])]] = {
 
@@ -114,16 +45,21 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypesCacheService, ac
     val rulesDef = RulesModelXML.parse(definition)
     val arguments = rulesDef.arguments.list
     val types = typeDefinitionService.newTypeCache
-    val argsFuture = generateArguments(requestData, arguments, types)
-    argsFuture.map(args => rulesDef.rules.list.map(rule => executeRule(rule, args, rulesDef.results.list, types)))
+
+    ArgumentsInPython.generateArguments(arguments, requestData, typeDefinitionService, types).map { argumentsAsCode =>
+      logger.debug("Arguments converted into python code: \n" + argumentsAsCode + "\n ------------------------------------")
+      val results = rulesDef.rules.list.map(rule => executeRule(rule, argumentsAsCode, rulesDef.results.list, types))
+      results
+    }
   }
 
-  private def executeRule(rule: Rule, pythonArgs: Map[String, PyObject], results: List[Result], types: TypeCacheType): (Rule, ConditionResult, Option[BodyResult]) = {
+  private def executeRule(rule: Rule, arguments: String, results: List[Result], types: TypeCacheType): (Rule, ConditionResult, Option[BodyResult]) = {
 
     logger.debug("Execute Rule '{}'", rule.name.getOrElse("[Untitled]"))
 
     val pi = new PythonInterpreter()
-    pythonArgs.foreach { case (name, value) => if (value != null) pi.set(name, value) }
+
+    pi.exec(arguments)
 
     val conditionResult = try {
       val result = pi.eval(rule.condition.code.trim)
@@ -148,6 +84,8 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypesCacheService, ac
     }
     else
       None
+
+    pi.close()
 
     (rule, conditionResult, bodyResult)
   }
@@ -231,3 +169,4 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypesCacheService, ac
 
   }
 }
+

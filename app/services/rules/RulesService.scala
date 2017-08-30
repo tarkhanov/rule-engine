@@ -2,12 +2,12 @@ package services.rules
 
 import javax.inject.{Inject, Singleton}
 
-import models.repository.rules.{RuleRepositoryRec, RuleRepositoryRecDetails}
-import services.execution.RulesPythonExecutor
-import services.execution.RulesPythonExecutor.{BodyResult, ConditionResult, RequestDataType}
 import models.repository.rules.RulesModel._
 import models.repository.rules.RulesModelXML._
+import models.repository.rules.{RuleRepositoryRec, RuleRepositoryRecDetails}
 import persistence.repository.Repository
+import services.execution.RulesPythonExecutor
+import services.execution.RulesPythonExecutor.{BodyResult, ConditionResult, RequestDataType}
 import services.rules.RulesService.RuleNotFound
 
 import scala.concurrent.{ExecutionContext, Future}

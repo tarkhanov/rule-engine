@@ -8,23 +8,20 @@ import models.repository.rules.RulesModelXML
 import models.repository.types.TypeRepositoryRec
 import models.repository.types.TypesModel._
 import play.api.mvc._
-import services.execution.{RulesWSDLDoc, SchemaAttribute, SchemaElement, SchemaType}
+import services.execution.RulesWSDLDoc._
+import services.execution.RulesWSDLDoc
 import services.rules.RulesService
-import services.types.TypesCacheService
-import services.types.TypesCacheService.TypeCacheType
+import services.types.TypeDefinitionService
+import services.types.TypeDefinitionService.TypeCacheType
 
 import scala.collection.mutable
 import scala.concurrent.Future
-
-/**
- * Created by Sergey Tarkhanov on 7/2/2015.
- */
 
 object RulesWSDLController {
   class TypeNotFoundException(message: String) extends RuntimeException(message)
 }
 
-class RulesWSDLController @Inject()(rulesService: RulesService, typeDefinitionService: TypesCacheService) extends InternationalInjectedController {
+class RulesWSDLController @Inject()(rulesService: RulesService, typeDefinitionService: TypeDefinitionService) extends InternationalInjectedController {
 
   private val defaultRedirect: Result = Redirect(Pages.defaultLandingPage)
 

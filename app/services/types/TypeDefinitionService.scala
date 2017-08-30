@@ -5,23 +5,19 @@ import javax.inject.{Inject, Singleton}
 
 import models.repository.types.{TypeModelXML, TypeRepositoryRec}
 import models.repository.types.TypesModel.{Type, TypeDefs}
-import services.types.TypesCacheService.TypeCacheType
+import services.types.TypeDefinitionService.TypeCacheType
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 import scala.xml.XML
 
-/**
- * Created by Sergey Tarkhanov on 5/30/2015.
- */
-
-object TypesCacheService {
+object TypeDefinitionService {
   type TypeCacheType = mutable.Map[String, (TypeRepositoryRec, Type)]
 }
 
 @Singleton
-class TypesCacheService @Inject()(typesService: TypesService)(implicit ec: ExecutionContext) {
+class TypeDefinitionService @Inject()(typesService: TypesService)(implicit ec: ExecutionContext) {
 
   def newTypeCache: TypeCacheType = mutable.Map[String, (TypeRepositoryRec, Type)]()
 

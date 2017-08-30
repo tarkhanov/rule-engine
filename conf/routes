@@ -3,49 +3,49 @@
 # ~~~~
 
 # Home page
-GET     /                                   	controllers.PublicController.index
-POST    /language                               controllers.LanguageController.changeLanguage
+GET     /                                         controllers.PublicController.index
+POST    /language                                 controllers.LanguageController.changeLanguage
 
-
-POST   /private/commit							controllers.SessionController.commit
-POST   /private/cancel							controllers.SessionController.cancel
+# Session
+POST   /private/commit                            controllers.SessionController.commit
+POST   /private/cancel                            controllers.SessionController.cancel
 
 # Authentication
-GET		/login							        controllers.AuthenticationController.login
-POST	/login							        controllers.AuthenticationController.enter
-GET		/logout							        controllers.AuthenticationController.logout
+GET    /login                                     controllers.AuthenticationController.login
+POST   /login                                     controllers.AuthenticationController.enter
+GET    /logout                                    controllers.AuthenticationController.logout
 
 # Private
-GET		/private           					  	controllers.RepositoryController.dashboard(folder: Option[Long], repoFrom: Option[Int], repoLength: Option[Int], allRecords: Option[Boolean] ?= None)
-GET		/private/item/:id/remove				controllers.RepositoryController.remove(id: Long)
-GET		/private/item/:id/sequence				controllers.RepositoryController.sequence(id: Long, historyFrom: Option[Int], historyLength: Option[Int])
-GET 	/private/upload							controllers.RepositoryUploadController.upload
-POST    /private/uploadFiles			        controllers.RepositoryUploadController.uploadFiles
+GET     /private                                  controllers.RepositoryController.dashboard(folder: Option[Long], repoFrom: Option[Int], repoLength: Option[Int], allRecords: Option[Boolean] ?= None)
+GET     /private/item/:id/remove                  controllers.RepositoryController.remove(id: Long)
+GET     /private/item/:id/sequence                controllers.RepositoryController.sequence(id: Long, historyFrom: Option[Int], historyLength: Option[Int])
+GET     /private/upload                           controllers.RepositoryUploadController.upload
+POST    /private/uploadFiles                      controllers.RepositoryUploadController.uploadFiles
 
-GET     /private/account                 		controllers.AccountController.details
+GET     /private/account                          controllers.AccountController.details
 
-GET     /private/settings                 		controllers.SettingsController.settings(usersFrom: Option[Int], usersLength: Option[Int])
+GET     /private/settings                         controllers.SettingsController.settings(usersFrom: Option[Int], usersLength: Option[Int])
 
-GET		/private/monitoring						controllers.MonitoringController.monitoring
-GET		/private/wsMonitoring					controllers.MonitoringController.wsMonitoring
+GET     /private/monitoring                       controllers.MonitoringController.monitoring
+GET     /private/wsMonitoring                     controllers.MonitoringController.wsMonitoring
 
 # Types
-GET     /private/service/types/new      	     controllers.module.types.TypesController.create
-GET     /private/service/types/:id/open       	 controllers.module.types.TypesController.open(id: Long)
-GET     /private/service/types/:id/edit          controllers.module.types.TypesController.edit(id: Long)
-POST    /private/service/types/:id/save          controllers.module.types.TypesAjax.save(id: Long)
-GET		/private/service/types/available.ajax    controllers.module.types.TypesAjax.available(list: String)
+GET     /private/service/types/new                controllers.module.types.TypesController.create
+GET     /private/service/types/:id/open           controllers.module.types.TypesController.open(id: Long)
+GET     /private/service/types/:id/edit           controllers.module.types.TypesController.edit(id: Long)
+POST    /private/service/types/:id/save           controllers.module.types.TypesAjax.save(id: Long)
+GET     /private/service/types/available.ajax     controllers.module.types.TypesAjax.available(list: String)
 
 # Rules
-GET     /private/service/rules/new 		         controllers.module.rules.RulesController.create
-GET     /private/service/rules/:id/open        	 controllers.module.rules.RulesController.open(id: Long)
-GET     /private/service/rules/:id/edit        	 controllers.module.rules.RulesController.edit(id: Long)
-POST    /private/service/rules/:id/save          controllers.module.rules.RulesController.save(id: Long)
+GET     /private/service/rules/new                controllers.module.rules.RulesController.create
+GET     /private/service/rules/:id/open           controllers.module.rules.RulesController.open(id: Long)
+GET     /private/service/rules/:id/edit           controllers.module.rules.RulesController.edit(id: Long)
+POST    /private/service/rules/:id/save           controllers.module.rules.RulesController.save(id: Long)
 
-GET     /interface/rules/:filter/soap            controllers.module.rules.RulesWSDLController.wsdl(filter: String, wsdl: String)
-POST    /interface/rules/:filter/soap            controllers.module.rules.RulesSOAPController.invoke(filter: String)
-
+# WS
+GET     /interface/rules/:filter/soap             controllers.module.rules.RulesWSDLController.wsdl(filter: String, wsdl: String)
+POST    /interface/rules/:filter/soap             controllers.module.rules.RulesSOAPController.invoke(filter: String)
 
 # Map static resources from the /public folder to the /assets URL path
 
-GET		  /assets/*file			                  controllers.Assets.at(path="/public", file)
+GET     /assets/*file                             controllers.Assets.at(path="/public", file)
