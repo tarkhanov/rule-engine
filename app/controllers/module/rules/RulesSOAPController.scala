@@ -8,20 +8,18 @@ import models.repository.rules.RulesModel.Rule
 import services.execution.RulesPythonExecutor._
 import services.rules.RulesService
 
-import scala.concurrent.Future
 import scala.xml.{Elem, Node}
 
 class RulesSOAPController @Inject()(rules: RulesService) extends InternationalInjectedController with StrictLogging {
 
   def invoke(ruleSetFilter: String) = Action.async(parse.tolerantXml) {
     request =>
-      (request.body \\ "rulesRequest")
+      val rulesRequest = (request.body \\ "rulesRequest")
         .headOption
-        .map(prepareSOAPRequest)
-        .map(rules.invoke(_, ruleSetFilter))
-        .getOrElse(Future.failed(new IllegalArgumentException("RuleSet not found")))
-        .map(r => r.map(rule))
-        .map(list => Ok(successEnvelope(list)).as("text/xml"))
+        .getOrElse(throw new IllegalArgumentException("rulesRequest not found"))
+
+      rules.invoke(prepareSOAPRequest(rulesRequest), ruleSetFilter)
+        .map(list => Ok(successEnvelope(list.map(rule))).as("text/xml"))
         .recover {
           case ex: IllegalArgumentException =>
             logger.debug("Exception during RuleSet execution", ex)
@@ -55,14 +53,7 @@ class RulesSOAPController @Inject()(rules: RulesService) extends InternationalIn
   private def rule(ruleRecord: (Rule, ConditionResult, Option[BodyResult])): Elem = {
 
     val (rule, condition, bodyOption) = ruleRecord
-
-    val resultNodes = bodyOption.map {
-      bodyResult => {
-        bodyResult.value.map {
-          case (name, value) => response(name, value)
-        }.flatten
-      }
-    }.getOrElse(List.empty)
+    val resultNodes = bodyOption.map(r => r.value.flatMap(Function.tupled(response))).getOrElse(List.empty)
 
     <rule name={rule.name.orNull} condition={condition.value.toString}>
       {condition.exceptions.map(ex => <exception location="condition">

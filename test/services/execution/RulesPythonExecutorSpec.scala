@@ -58,7 +58,7 @@ class RulesPythonExecutorSpec extends WordSpec with MustMatchers with MockitoSug
           |</RuleSet>
         """.stripMargin
 
-      val result: Seq[(Rule, ConditionResult, Option[BodyResult])] = Await.result(executor.execute(requestData, 123, definition), 5.seconds)
+      val result = Await.result(executor.execute(requestData, 123, definition), 5.seconds)
 
       result.length mustBe 1
       val (rule, condition, Some(body)) = result.head
@@ -144,7 +144,7 @@ class RulesPythonExecutorSpec extends WordSpec with MustMatchers with MockitoSug
     "accept structures" in {
       val mockTypeDefinitionService = mock[TypeDefinitionService]
       when(mockTypeDefinitionService.newTypeCache) thenReturn mutable.Map[String, (TypeRepositoryRec, Type)]()
-      when(mockTypeDefinitionService.typeDefinitionLookup( Matchers.eq("sequence:CMYe"), Matchers.any())) thenReturn
+      when(mockTypeDefinitionService.typeDefinitionLookup(Matchers.eq("sequence:CMYe"), Matchers.any())) thenReturn
         Future.successful(Some(Type(seq = Some("sequence:CMYe"), name = "Type1", fields = List(Field("field1", "string"), Field("field2", "int")))))
 
       val executor = new RulesPythonExecutor(mockTypeDefinitionService)
@@ -189,5 +189,7 @@ class RulesPythonExecutorSpec extends WordSpec with MustMatchers with MockitoSug
       body.exceptions.isEmpty mustBe true
     }
   }
+
+  // TODO: Test error handling
 
 }
