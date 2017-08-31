@@ -1,4 +1,4 @@
-package test.server
+package server
 
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.play._
