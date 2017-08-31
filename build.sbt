@@ -24,4 +24,6 @@ libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.0"
 libraryDependencies += "com.typesafe.play" %% "play-slick" %  "3.0.1"
 
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
+
+libraryDependencies += "org.mockito" % "mockito-all" % "1.10.19" % Test
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % Test

@@ -4,7 +4,7 @@ import scala.concurrent.{Promise, ExecutionContext, Future}
 import scala.language.reflectiveCalls
 import scala.util.{Failure, Success, Try}
 
-package object util {
+package object utils {
 
   def using[A, B <: {def close() : Unit}](closeable: B)(f: B => A): A =
     try {

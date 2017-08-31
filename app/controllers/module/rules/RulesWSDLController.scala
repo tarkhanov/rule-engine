@@ -34,7 +34,7 @@ class RulesWSDLController @Inject()(rulesService: RulesService, typeDefinitionSe
 
       case _ =>
         typeDefinitionService.typeDefinitionLookup(typeId, typeCache).flatMap {
-          case Some((_: TypeRepositoryRec, typeDef: Type)) =>
+          case Some(typeDef) =>
             list.put(typeDef.name, None)
             val elements = typeDef.fields.map {
               field =>

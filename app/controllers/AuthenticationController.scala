@@ -8,7 +8,7 @@ import controllers.security.{AuthAction, WebSecurity}
 import play.api.data.Forms._
 import play.api.data._
 import services.AuthService
-import util._
+import utils._
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

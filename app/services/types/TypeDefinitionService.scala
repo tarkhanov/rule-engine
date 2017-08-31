@@ -26,17 +26,17 @@ class TypeDefinitionService @Inject()(typesService: TypesService)(implicit ec: E
     val typeDef = Type(Some(record.seq), record.name, fields)
     val pair = (record, typeDef)
     typeCache += filter -> pair
-    pair
+    typeDef
   }
 
-  def typeDefinitionLookup(filter: String, typeCache: TypeCacheType): Future[Option[(TypeRepositoryRec, Type)]] = {
+  def typeDefinitionLookup(filter: String, typeCache: TypeCacheType): Future[Option[Type]] = {
     filter match {
       case TypeDefs.isSequence(seq) =>
         val cached = typeCache.get(filter)
         if (cached.isEmpty)
           typesService.lookupSeq(seq).map(_.map(createCacheItem(filter, typeCache)))
         else
-          Future.successful(cached)
+          Future.successful(cached.map { case (_, t) => t } )
 
       case TypeDefs.isIdentifier(id) =>
         Try(id.toLong) match {
@@ -45,7 +45,7 @@ class TypeDefinitionService @Inject()(typesService: TypesService)(implicit ec: E
             if (cached.isEmpty)
               typesService.lookupId(longId).map(_.map(createCacheItem(filter, typeCache)))
             else
-              Future.successful(cached)
+              Future.successful(cached.map { case (_, t) => t } )
 
           case Failure(_) =>
             Future.failed(new IllegalArgumentException("Invalid id format: " + id))

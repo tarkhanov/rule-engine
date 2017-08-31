@@ -72,7 +72,7 @@ object ArgumentsInPython {
 
       case otherType =>
         types.typeDefinitionLookup(otherType, typeCache).flatMap {
-          case Some((_, typeDef: Type)) =>
+          case Some(typeDef) =>
             val mapOfFields = requestDataValues(name).headOption.map(_.right.get.asInstanceOf[RequestDataType])
             val pyFieldsFutures = typeDef.fields.map(f => {
               def provideData(fieldName: String) = mapOfFields.map(_.getOrElse(fieldName, Seq.empty).take(1)).getOrElse(Seq.empty) // Get 1st argument of structure

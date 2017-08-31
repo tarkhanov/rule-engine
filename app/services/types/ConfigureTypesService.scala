@@ -21,7 +21,7 @@ trait ConfigureTypesService extends ConfigurationFilter with StrictLogging {
 
   override def applyConfigurationFilter(name: String, stream: => InputStream, user: String)(implicit ex: ExecutionContext): Future[List[Try[UploadStatus]]] = {
     if (name.toUpperCase.endsWith(ending)) {
-      val doc: Elem = util.using(stream)(XML.load)
+      val doc: Elem = utils.using(stream)(XML.load)
       val deployFutures = readTypes(doc).map(t => {
         logger.debug("Deploy new TYPE, seq: " + t.seq + " name: " + t.name)
         create(t.seq, TypeRepositoryRec(0L, "", t.name, serialize(t)), user)

@@ -24,7 +24,7 @@ object RulesPythonExecutor {
   case class ExecutionResult[T](value: T, exceptions: List[Throwable] = List.empty)
 
   type ConditionResult = ExecutionResult[Boolean]
-  type BodyResult = ExecutionResult[List[(String, Future[RuleResultType])]]
+  type BodyResult = ExecutionResult[List[(String, RuleResultType)]]
 
   type RuleResultType = List[Either[String, Map[String, AnyRef]]]
 
@@ -48,50 +48,50 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypeDefinitionService
     val arguments = rulesDef.arguments.list
     val types = typeDefinitionService.newTypeCache
 
-    ArgumentsInPython.generateArguments(arguments, requestData, typeDefinitionService, types).map { argumentsAsCode =>
-      logger.debug("Arguments converted into python code: \n" + argumentsAsCode + "\n ------------------------------------")
-      val results = rulesDef.rules.list.map(rule => executeRule(rule, argumentsAsCode, rulesDef.results.list, types))
-      results
+    ArgumentsInPython.generateArguments(arguments, requestData, typeDefinitionService, types).flatMap { argumentsAsCode =>
+      logger.debug("Arguments converted into python code: \n" + argumentsAsCode)
+      val futures = rulesDef.rules.list.map(rule => executeRule(rule, argumentsAsCode, rulesDef.results.list, types))
+      Future.sequence(futures)
     }
   }
 
-  private def executeRule(rule: Rule, arguments: String, results: List[Result], types: TypeCacheType): (Rule, ConditionResult, Option[BodyResult]) = {
+  private def executeRule(rule: Rule, arguments: String, results: List[Result], types: TypeCacheType): Future[(Rule, ConditionResult, Option[BodyResult])] = {
 
     logger.debug("Execute Rule '{}'", rule.name.getOrElse("[Untitled]"))
 
-    val pi = new PythonInterpreter()
+    utils.using(new PythonInterpreter()) { pi =>
 
-    val conditionResult = try {
-      pi.exec(arguments)
-      val result = pi.eval(rule.condition.code.trim)
-      logger.debug("Invocation result is {}", result)
-      ExecutionResult(result.equals(new PyBoolean(true)))
-    }
-    catch {
-      case ex: PyException =>
-        logger.debug("Exception during rule invocation: {}, {}", ex.getClass.getName, ex.getMessage)
-        ExecutionResult(false, List(ex))
-    }
-
-    val bodyResult = if (conditionResult.value) {
-      val result: BodyResult = try {
-        pi.exec(rule.body.code.trim)
-        ExecutionResult(results.map(r => r.name -> convertResponse(pi.get(r.name), r.`type`, types)))
+      val conditionResult = try {
+        pi.exec(arguments)
+        val result = pi.eval(rule.condition.code.trim)
+        logger.debug("Invocation result is {}", result)
+        ExecutionResult(result.equals(new PyBoolean(true)))
       }
       catch {
-        case ex: PyException => ExecutionResult(List(), List(ex))
+        case ex: PyException =>
+          logger.debug("Exception during rule invocation: {}, {}", ex.getClass.getName, ex.getMessage)
+          ExecutionResult(false, List(ex))
       }
-      Some(result)
+
+      val bodyResult: Future[Option[BodyResult]] = if (conditionResult.value) {
+        try {
+          pi.exec(rule.body.code.trim)
+          val futures = results.map(r => convertResponse(pi.get(r.name), r.`type`, types).map(r.name -> _))
+          Future.sequence(futures).map(list => Some(ExecutionResult(list)))
+        }
+        catch {
+          case ex: PyException =>
+            Future.successful(Some(ExecutionResult(List(), List(ex))))
+        }
+      }
+      else
+        Future.successful(None)
+
+      bodyResult.map(br => (rule, conditionResult, br))
     }
-    else
-      None
-
-    pi.close()
-
-    (rule, conditionResult, bodyResult)
   }
 
-  def convertAnyTypeResponse(value: PyObject): Future[RuleResultType] = {
+  private def convertAnyTypeResponse(value: PyObject): Future[RuleResultType] = {
     value match {
       case integer: PyInteger => Future.successful(List(Left(integer.toString)))
       case string: PyString => Future.successful(List(Left(string.toString)))
@@ -115,7 +115,7 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypeDefinitionService
     }
   }
 
-  def convertResponse(value: PyObject, typeFilter: String, types: TypeCacheType): Future[RuleResultType] = {
+  private def convertResponse(value: PyObject, typeFilter: String, types: TypeCacheType): Future[RuleResultType] = {
 
     typeFilter match {
       case "int" =>
@@ -144,7 +144,7 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypeDefinitionService
         }
       case otherType =>
         typeDefinitionService.typeDefinitionLookup(otherType, types).flatMap {
-          case Some((_: TypeRepositoryRec, typeDef: Type)) =>
+          case Some(typeDef) =>
             val b = typeDef.fields.flatMap {
               field => {
                 try {

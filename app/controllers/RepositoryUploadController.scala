@@ -36,7 +36,7 @@ class RepositoryUploadController @Inject()(authenticatedAction: AuthAction, conf
   private def readZipFile(uploadedFile: FilePart[TemporaryFile])(implicit request: AuthenticatedRequest[_]) = {
     val zip = new ZipFile(uploadedFile.ref.path.toFile, ZipFile.OPEN_READ)
     val futuresM = mutable.MutableList[Future[List[Try[UploadStatus]]]]()
-    util.using(zip) {
+    utils.using(zip) {
       _.stream().forEach {
         (f: ZipEntry) => futuresM += configurationService.process(f.getName, zip.getInputStream(f), request.user)
       }

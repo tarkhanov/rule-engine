@@ -22,7 +22,7 @@ trait ConfigureRulesService extends ConfigurationFilter {
 
     if (name.toUpperCase.endsWith(ending)) {
       val zipInputStream = stream
-      val doc = util.using(zipInputStream)(is => IOUtils.toString(is)).replaceAll("\\t", "    ")
+      val doc = utils.using(zipInputStream)(is => IOUtils.toString(is)).replaceAll("\\t", "    ")
 
       val ruleSet = RulesModelXML.parse(doc)
       val newSeq = ruleSet.seq

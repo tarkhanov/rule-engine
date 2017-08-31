@@ -20,7 +20,7 @@ class RulesSOAPController @Inject()(rules: RulesService) extends InternationalIn
         .map(prepareSOAPRequest)
         .map(rules.invoke(_, ruleSetFilter))
         .getOrElse(Future.failed(new IllegalArgumentException("RuleSet not found")))
-        .flatMap(r => Future.sequence(r.map(rule)))
+        .map(r => r.map(rule))
         .map(list => Ok(successEnvelope(list)).as("text/xml"))
         .recover {
           case ex: IllegalArgumentException =>
@@ -52,30 +52,27 @@ class RulesSOAPController @Inject()(rules: RulesService) extends InternationalIn
     process(node.child.filter(isElem))
   }
 
-  private def rule(ruleRecord: (Rule, ConditionResult, Option[BodyResult])): Future[Elem] = {
+  private def rule(ruleRecord: (Rule, ConditionResult, Option[BodyResult])): Elem = {
 
     val (rule, condition, bodyOption) = ruleRecord
 
-    val futureListOfNodes = bodyOption.map {
+    val resultNodes = bodyOption.map {
       bodyResult => {
-        val listOfFutures = bodyResult.value.map {
-          case (name, value) => value.map(v => response(name, v))
-        }
-        Future.sequence(listOfFutures).map(_.flatten)
+        bodyResult.value.map {
+          case (name, value) => response(name, value)
+        }.flatten
       }
-    }.getOrElse(Future.successful(List.empty))
+    }.getOrElse(List.empty)
 
-    futureListOfNodes.map {
-      resultNodes =>
-        <rule name={rule.name.orNull} condition={condition.value.toString}>
-          {condition.exceptions.map(ex => <exception location="condition">
-          {ex.getClass.getName + ": " + ex.getMessage}
-        </exception>)}{bodyOption.map(_.exceptions.map { ex => <exception location="body">
-          {ex.getClass.getName + ": " + ex.getMessage}
-        </exception>
-        }).getOrElse(List.empty)}{resultNodes}
-        </rule>
-    }
+    <rule name={rule.name.orNull} condition={condition.value.toString}>
+      {condition.exceptions.map(ex => <exception location="condition">
+      {ex.getClass.getName + ": " + ex.getMessage}
+    </exception>)}{bodyOption.map(_.exceptions.map { ex =>
+      <exception location="body">
+        {ex.getClass.getName + ": " + ex.getMessage}
+      </exception>
+    }).getOrElse(List.empty)}{resultNodes}
+    </rule>
   }
 
   private def response(name: String, value: RuleResultType): List[Node] =
