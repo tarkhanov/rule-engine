@@ -15,8 +15,14 @@ class ServerSpec extends PlaySpec with GuiceOneServerPerSuite with ScalaFutures 
 
   "Server" should {
 
-    "redirect to https" in {
+    "redirect to https from root page" in {
       whenReady(WsTestClient.wsUrl("/").get) { response =>
+        response.status mustBe Status.PERMANENT_REDIRECT
+      }
+    }
+
+    "redirect to https from login page" in {
+      whenReady(WsTestClient.wsUrl("/login").get) { response =>
         response.status mustBe Status.PERMANENT_REDIRECT
       }
     }
