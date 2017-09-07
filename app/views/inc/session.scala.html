@@ -1,5 +1,5 @@
-@(session: Option[models.repository.SessionRec])(implicit messages: Messages)
-
+@(session: Option[models.repository.SessionRec])(implicit request: RequestHeader, messages: Messages)
+@import helper._
 <div style="float: right;border-left: 2px solid #c0c0c0;padding: 0 0 4px 0;margin-top: 36px;">
     <table>
         <tr>
@@ -11,24 +11,26 @@
         </tr>
         <tr>
             <td style="padding-right: 16px;padding-left:32px;">
-                <form action="/private/commit" method="post">
+                @form(routes.SessionController.commit()) {
                     @if(session.isEmpty) {
                     <input type="submit" value='@Messages("session.submit.button")' disabled="disabled"/>
                     }
                     @if(session.isDefined) {
                     <input type="submit" value='@Messages("session.submit.button")'/>
                     }
-                </form>
+                    @CSRF.formField
+                }
             </td>
             <td>
-                <form action="/private/cancel" method="post">
+                @form(routes.SessionController.cancel()) {
                     @if(session.isEmpty) {
                     <input type="submit" value='@Messages("session.cancel.button")' disabled="disabled"/>
                     }
                     @if(session.isDefined) {
                     <input type="submit" value='@Messages("session.cancel.button")'/>
                     }
-                </form>
+                    @CSRF.formField
+                }
             </td>
         </tr>
     </table>

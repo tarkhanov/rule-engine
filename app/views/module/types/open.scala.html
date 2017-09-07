@@ -2,8 +2,8 @@
 readOnly: Boolean,
 details: models.repository.types.TypeRepositoryRecDetails,
 fields: List[models.repository.types.TypesModel.Field],
-log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
-
+log: Option[String] = None)(implicit request: RequestHeader, messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
+@import helper._
 @inc.main("Type: " + details.record.name) {
 
 @inc.nav(Some(user), "repository")
@@ -51,6 +51,7 @@ log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLa
                         </td>
                     </tr>
                 </table>
+                @CSRF.formField
             </div>
             <!--div class="actions">
                 @if(readOnly) {

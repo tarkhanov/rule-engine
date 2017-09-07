@@ -2,8 +2,8 @@
 readOnly: Boolean,
 details: models.repository.rules.RuleRepositoryRecDetails,
 definition: models.repository.rules.RulesModel.RuleSet,
-log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
-
+log: Option[String] = None)(implicit request: RequestHeader, messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
+@import helper._
 @scripts = {
     <script type="text/javascript" src="/assets/javascripts/shCore.js"></script>
     <script type="text/javascript" src="/assets/javascripts/shBrushPython.js"></script>
@@ -19,7 +19,7 @@ log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLa
         Set: @details.record.name @if(!readOnly) { (Uncommitted) }</h2>
 </div>
 
-<form action="/private/service/rules/@details.record.id/save" method="post" enctype="application/x-www-form-urlencoded">
+@form(controllers.module.rules.routes.RulesController.save(details.record.id)) {
     <div class="offset">
         <div style="padding: 12px 20px; border: 1px solid #e0e0e0;">
             @if(readOnly) {
@@ -31,7 +31,8 @@ log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLa
             }
         </div>
     </div>
-</form>
+    @CSRF.formField
+}
 
 <div class="panel">
     <div class="header">

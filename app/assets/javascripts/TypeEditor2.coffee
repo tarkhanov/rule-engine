@@ -34,13 +34,7 @@ $ ->
         recordId = $(".recordId").text()
         name = $("INPUT.typeName").val()
         sequence = $("INPUT.typeSequence").val()
-        #result = """<type seq="#{sequence}" name="#{name}">"""
-        #$(".field-list").find(".field").each (i, item) ->
-        #    name = $(item).find(".name").val()
-        #    type = $(item).find(".type").data("type")
-        #    result += """<field name="#{name}" type="#{type}" />"""
-        #result += """</type>"""
-        #alert(result)
+        csrfToken = $("INPUT[name=csrfToken]").val()
         json = """{ "seq": "#{sequence}", "name": "#{name}", "fields": [ """
         fields = []
         $(".field-list").find(".field").each (i, item) ->
@@ -52,6 +46,9 @@ $ ->
         $.ajax("/private/service/types/" + recordId + "/save", {
             data : json,
             contentType : 'application/json',
+            headers: {
+              "Csrf-Token": csrfToken
+            },
             type : 'POST',
             success: () ->
                 window.location = "/private";

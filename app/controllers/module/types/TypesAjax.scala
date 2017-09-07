@@ -7,11 +7,12 @@ import controllers.security.AuthAction
 import models.repository.types.TypesModel.{Field, Type}
 import models.repository.types.{TypeModelXML, TypesModel}
 import play.api.libs.json._
+import play.filters.csrf.CSRFCheck
 import services.types.TypesService
 
 import scala.concurrent.Future
 
-class TypesAjax @Inject()(authenticatedAction: AuthAction, typesService: TypesService) extends InternationalInjectedController {
+class TypesAjax @Inject()(checkToken: CSRFCheck, authenticatedAction: AuthAction, typesService: TypesService) extends InternationalInjectedController {
 
   implicit object writeListOfPairs extends Writes[List[(String, String)]] {
     def writes(list: List[(String, String)]) =
@@ -27,25 +28,27 @@ class TypesAjax @Inject()(authenticatedAction: AuthAction, typesService: TypesSe
       Future.successful(Ok(Json.toJson(listOfTypes)).as("application/json"))
   }
 
-  def save(id: Long) = authenticatedAction.async(parse.json) {
-    request =>
-      request.body.result.toOption match {
-        case Some(jsonTypeDefinition) =>
-          val typeDefinition = jsonDeserializeType(jsonTypeDefinition)
-          val xmlTypeDefinition = TypeModelXML.serialize(typeDefinition)
-          val sequence = typeDefinition.seq
-          val name = Some(typeDefinition.name)
-          typesService.saveDefinition(id, xmlTypeDefinition, sequence, name).map {
-            _ =>
-              val response = JsObject(Seq("status" -> JsString("OK")))
-              Ok(response).as("application/json")
-          }.recover { case ex =>
+  def save(id: Long) = checkToken {
+    authenticatedAction.async(parse.json) {
+      request =>
+        request.body.result.toOption match {
+          case Some(jsonTypeDefinition) =>
+            val typeDefinition = jsonDeserializeType(jsonTypeDefinition)
+            val xmlTypeDefinition = TypeModelXML.serialize(typeDefinition)
+            val sequence = typeDefinition.seq
+            val name = Some(typeDefinition.name)
+            typesService.saveDefinition(id, xmlTypeDefinition, sequence, name).map {
+              _ =>
+                val response = JsObject(Seq("status" -> JsString("OK")))
+                Ok(response).as("application/json")
+            }.recover { case ex =>
               val response = JsObject(Seq("status" -> JsString("ERROR"), "error" -> JsString(ex.getMessage)))
               Ok(response).as("application/json")
-          }
-        case None =>
-          Future.successful(BadRequest)
-      }
+            }
+          case None =>
+            Future.successful(BadRequest)
+        }
+    }
   }
 
   def jsonDeserializeType(json: JsValue): Type = {

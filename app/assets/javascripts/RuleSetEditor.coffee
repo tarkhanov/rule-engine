@@ -135,6 +135,7 @@ $ ->
         recordId = $(".recordId").text()
         name = $("INPUT.rulesName").val()
         sequence = $("INPUT.rulesSequence").val()
+        csrfToken = $("INPUT[name=csrfToken]").val()
         json = """{ "seq": "#{sequence}", "name": "#{name}", "arguments": [ """
         args = []
         $(".args-list").find(".arg").each (i, item) ->
@@ -161,6 +162,9 @@ $ ->
         $.ajax("/private/service/rules/" + recordId + "/save", {
             data : json,
             contentType : 'application/json',
+            headers: {
+              "Csrf-Token": csrfToken
+            },
             type : 'POST',
             success: () ->
                 window.location = "/private";

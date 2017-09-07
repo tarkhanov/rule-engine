@@ -8,12 +8,13 @@ import models.repository.rules.RulesModel._
 import models.repository.rules.RulesModelXML
 import persistence.repository.Repository
 import play.api.libs.json._
+import play.filters.csrf.{CSRFAddToken, CSRFCheck}
 import services.rules.RulesService
 import services.rules.RulesService.RuleNotFound
 
 import scala.concurrent.Future
 
-class RulesController @Inject()(authenticatedAction: AuthAction, rules: RulesService) extends InternationalInjectedController {
+class RulesController @Inject()(addToken: CSRFAddToken, checkToken: CSRFCheck, authenticatedAction: AuthAction, rules: RulesService) extends InternationalInjectedController {
 
   def create = authenticatedAction async {
     implicit request =>
@@ -22,16 +23,18 @@ class RulesController @Inject()(authenticatedAction: AuthAction, rules: RulesSer
       }
   }
 
-  def open(id: Long) = authenticatedAction async {
-    implicit request =>
-      rules.getRecordDetails(id, request.user).map {
-        case Some(rec) =>
-          val readOnly = !rec.actions.exists(_.action == Repository.CREATE_ACTION)
-          val definition = RulesModelXML.parse(rec.record.definition)
-          Ok(views.html.module.rules.open(request.user, readOnly, rec, definition, request.log))
-        case None =>
-          NotFound(views.html.error.http404(request.user))
-      }
+  def open(id: Long) = addToken {
+    authenticatedAction async {
+      implicit request =>
+        rules.getRecordDetails(id, request.user).map {
+          case Some(rec) =>
+            val readOnly = !rec.actions.exists(_.action == Repository.CREATE_ACTION)
+            val definition = RulesModelXML.parse(rec.record.definition)
+            Ok(views.html.module.rules.open(request.user, readOnly, rec, definition, request.log))
+          case None =>
+            NotFound(views.html.error.http404(request.user))
+        }
+    }
   }
 
   def edit(id: Long) = authenticatedAction async {
@@ -43,22 +46,24 @@ class RulesController @Inject()(authenticatedAction: AuthAction, rules: RulesSer
       }
   }
 
-  def save(id: Long) = authenticatedAction.async(parse.json) {
-    request =>
-      request.body.result match {
-        case JsDefined(jsonTypeDefinition) =>
-          rules.saveDefinition(id, jsonDeserializeRuleSet(jsonTypeDefinition)).map {
-            _ =>
-              val response = JsObject(Seq("status" -> JsString("OK")))
-              Ok(response).as("application/json")
-          }.recover {
-            case ex =>
-              val response = JsObject(Seq("status" -> JsString("ERROR"), "error" -> JsString(ex.getMessage)))
-              Ok(response).as("application/json")
-          }
-        case _ =>
-          Future.successful(BadRequest)
-      }
+  def save(id: Long) = checkToken {
+    authenticatedAction.async(parse.json) {
+      request =>
+        request.body.result match {
+          case JsDefined(jsonTypeDefinition) =>
+            rules.saveDefinition(id, jsonDeserializeRuleSet(jsonTypeDefinition)).map {
+              _ =>
+                val response = JsObject(Seq("status" -> JsString("OK")))
+                Ok(response).as("application/json")
+            }.recover {
+              case ex =>
+                val response = JsObject(Seq("status" -> JsString("ERROR"), "error" -> JsString(ex.getMessage)))
+                Ok(response).as("application/json")
+            }
+          case _ =>
+            Future.successful(BadRequest)
+        }
+    }
   }
 
   import models.repository.rules.RulesModelJson._

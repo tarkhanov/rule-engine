@@ -8,6 +8,7 @@ import controllers.security.AuthAction
 import controllers.security.WebSecurity.AuthenticatedRequest
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.MultipartFormData.FilePart
+import play.filters.csrf.{CSRFAddToken, CSRFCheck}
 import services.configuration.ConfigurationService
 import services.configuration.ConfigurationService.UploadStatus
 
@@ -15,13 +16,15 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-class RepositoryUploadController @Inject()(authenticatedAction: AuthAction, configurationService: ConfigurationService) extends InternationalInjectedController {
+class RepositoryUploadController @Inject()(addToken: CSRFAddToken, checkToken: CSRFCheck, authenticatedAction: AuthAction, configurationService: ConfigurationService) extends InternationalInjectedController {
 
   private val uploadControllerIndex = Redirect(routes.RepositoryUploadController.upload())
 
-  def upload = authenticatedAction {
-    implicit request =>
-      Ok(views.html.repository.upload(request.user, request.error, request.log))
+  def upload = addToken {
+    authenticatedAction {
+      implicit request =>
+        Ok(views.html.repository.upload(request.user, request.error, request.log))
+    }
   }
 
   private def statusToString(status: Try[UploadStatus]): String =
@@ -44,21 +47,23 @@ class RepositoryUploadController @Inject()(authenticatedAction: AuthAction, conf
     futuresM.toList
   }
 
-  def uploadFiles = authenticatedAction.async(parse.multipartFormData) {
-    implicit request =>
-      try {
-        val futures = for {
-          uploadedFile <- request.body.files
-          uploadedItem <- if (uploadedFile.filename.toLowerCase.endsWith(".zip"))
-            readZipFile(uploadedFile)
-          else
-            Seq(configurationService.process(uploadedFile.filename, new FileInputStream(uploadedFile.ref.path.toFile), request.user))
-        } yield uploadedItem
-        Future.sequence(futures).map { r => uploadControllerIndex flashing ("log" -> collectLog(r)) }
-      }
-      catch {
-        case ex: Throwable => Future.successful(uploadControllerIndex withError ex)
-      }
+  def uploadFiles = checkToken {
+    authenticatedAction.async(parse.multipartFormData) {
+      implicit request =>
+        try {
+          val futures = for {
+            uploadedFile <- request.body.files
+            uploadedItem <- if (uploadedFile.filename.toLowerCase.endsWith(".zip"))
+              readZipFile(uploadedFile)
+            else
+              Seq(configurationService.process(uploadedFile.filename, new FileInputStream(uploadedFile.ref.path.toFile), request.user))
+          } yield uploadedItem
+          Future.sequence(futures).map { r => uploadControllerIndex flashing ("log" -> collectLog(r)) }
+        }
+        catch {
+          case ex: Throwable => Future.successful(uploadControllerIndex withError ex)
+        }
+    }
   }
 
 }
