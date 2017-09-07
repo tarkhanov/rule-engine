@@ -1,4 +1,5 @@
-@(user: Option[String], section: String = "")(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
+@(user: Option[String], section: String = "")(implicit request: RequestHeader, messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
+@import helper._
 <nav>
     <div style="padding-left: 22px;">
         <ul>
@@ -49,6 +50,7 @@
             <option value="@l.code" @(if(lang.code.startsWith(l.code)) "selected")>@Messages("language." + l.code)</option>
             }
         </select>
+        @CSRF.formField
         }
     </div>
 </nav>

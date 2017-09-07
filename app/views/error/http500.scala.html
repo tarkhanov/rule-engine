@@ -1,5 +1,5 @@
 @(ex: Throwable,
-log: Option[String] = None)(implicit messages: Messages)
+log: Option[String] = None)(implicit request: RequestHeader, messages: Messages)
 
 @inc.main("Welcome to Play") {
 

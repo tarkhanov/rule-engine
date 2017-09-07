@@ -15,4 +15,5 @@ class LanguageController extends InternationalInjectedController {
         language => Redirect(referrer).withLang(Lang(language))
       )
   }
+
 }

@@ -8,12 +8,11 @@ import controllers.security.AuthAction
 import models.repository.types.TypesModel._
 import models.repository.types.{TypeModelXML, TypeRepositoryRec}
 import persistence.repository.Repository
-import play.filters.csrf.{CSRFAddToken, CSRFCheck}
 import services.types.TypesService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TypesController @Inject()(addToken: CSRFAddToken, checkToken: CSRFCheck, authenticatedAction: AuthAction, typesService: TypesService)(implicit ec: ExecutionContext) extends InternationalInjectedController {
+class TypesController @Inject()(authenticatedAction: AuthAction, typesService: TypesService)(implicit ec: ExecutionContext) extends InternationalInjectedController {
 
   def create = authenticatedAction async {
     implicit request =>
@@ -29,18 +28,16 @@ class TypesController @Inject()(addToken: CSRFAddToken, checkToken: CSRFCheck, a
       } yield result
   }
 
-  def open(id: Long) = addToken {
-    authenticatedAction async {
-      implicit request =>
-        typesService.getRecordDetails(id, request.user).map {
-          case Some(rec) =>
-            val readOnly = !rec.actions.exists(_.action == Repository.CREATE_ACTION)
-            val fields = TypeModelXML.readFields(scala.xml.XML.load(new StringReader(rec.record.definition)))
-            Ok(views.html.module.types.open(request.user, readOnly, rec, fields, request.flash.get("log")))
-          case None =>
-            NotFound(views.html.error.http404(request.user))
-        }
-    }
+  def open(id: Long) = authenticatedAction async {
+    implicit request =>
+      typesService.getRecordDetails(id, request.user).map {
+        case Some(rec) =>
+          val readOnly = !rec.actions.exists(_.action == Repository.CREATE_ACTION)
+          val fields = TypeModelXML.readFields(scala.xml.XML.load(new StringReader(rec.record.definition)))
+          Ok(views.html.module.types.open(request.user, readOnly, rec, fields, request.flash.get("log")))
+        case None =>
+          NotFound(views.html.error.http404(request.user))
+      }
   }
 
   def edit(id: Long) = authenticatedAction async {

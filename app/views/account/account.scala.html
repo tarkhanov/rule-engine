@@ -1,5 +1,5 @@
 @(user: String,
-log: Option[String] = None)(implicit messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
+log: Option[String] = None)(implicit request: RequestHeader, messages: Messages, lang: Lang, availableLanguages: Seq[Lang])
 
 @inc.main(Messages(user)) {
 

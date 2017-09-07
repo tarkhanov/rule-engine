@@ -8,7 +8,6 @@ import controllers.security.AuthAction
 import controllers.security.WebSecurity.AuthenticatedRequest
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.MultipartFormData.FilePart
-import play.filters.csrf.{CSRFAddToken, CSRFCheck}
 import services.configuration.ConfigurationService
 import services.configuration.ConfigurationService.UploadStatus
 
@@ -16,16 +15,15 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-class RepositoryUploadController @Inject()(addToken: CSRFAddToken, checkToken: CSRFCheck, authenticatedAction: AuthAction, configurationService: ConfigurationService) extends InternationalInjectedController {
+class RepositoryUploadController @Inject()(authenticatedAction: AuthAction, configurationService: ConfigurationService) extends InternationalInjectedController {
 
   private val uploadControllerIndex = Redirect(routes.RepositoryUploadController.upload())
 
-  def upload = addToken {
-    authenticatedAction {
+  def upload = authenticatedAction {
       implicit request =>
         Ok(views.html.repository.upload(request.user, request.error, request.log))
     }
-  }
+
 
   private def statusToString(status: Try[UploadStatus]): String =
     status match {
@@ -47,8 +45,7 @@ class RepositoryUploadController @Inject()(addToken: CSRFAddToken, checkToken: C
     futuresM.toList
   }
 
-  def uploadFiles = checkToken {
-    authenticatedAction.async(parse.multipartFormData) {
+  def uploadFiles =  authenticatedAction.async(parse.multipartFormData) {
       implicit request =>
         try {
           val futures = for {
@@ -64,7 +61,7 @@ class RepositoryUploadController @Inject()(addToken: CSRFAddToken, checkToken: C
           case ex: Throwable => Future.successful(uploadControllerIndex withError ex)
         }
     }
-  }
+
 
 }
 

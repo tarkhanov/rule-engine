@@ -7,7 +7,6 @@ import controllers.security.WebSecurity.Credentials
 import controllers.security.{AuthAction, Authenticator, WebSecurity}
 import play.api.data.Forms._
 import play.api.data._
-import play.filters.csrf.{CSRFAddToken, CSRFCheck}
 import utils._
 
 import scala.concurrent.Future
@@ -19,14 +18,13 @@ object AuthenticationController {
 
 }
 
-class AuthenticationController @Inject()(addToken: CSRFAddToken, checkToken: CSRFCheck, authenticatedAction: AuthAction, authenticator: Authenticator) extends InternationalInjectedController {
+class AuthenticationController @Inject()(authenticatedAction: AuthAction, authenticator: Authenticator) extends InternationalInjectedController {
 
-  def login = addToken {
-    Action {
+  def login = Action {
       implicit request =>
         Ok(views.html.login("Your new application is ready.", None, request.error, request.redirect))
     }
-  }
+
 
   private val userLoginFrom = Form(mapping(
     "login" -> text.verifying("Login is empty", _.nonEmpty),
@@ -34,24 +32,22 @@ class AuthenticationController @Inject()(addToken: CSRFAddToken, checkToken: CSR
     "redirect" -> optional(text)
   )(LoginFormData.apply)(LoginFormData.unapply))
 
-  def enter = checkToken {
-    Action.async(parse.formUrlEncoded) {
-      implicit request =>
-        userLoginFrom.bindFromRequest.continue {
-          case Success(data) =>
-            val credentials = Credentials(data.uid, data.password)
-            WebSecurity.login(request, credentials, authenticator) {
-              _.user match {
-                case Success(_) =>
-                  SeeOther(data.redirect.flatMap(nonEmptyOption).getOrElse(Pages.defaultLandingPage.url))
-                case Failure(e) =>
-                  Redirect(Pages.loginPage) withError e
-              }
+  def enter = Action.async(parse.formUrlEncoded) {
+    implicit request =>
+      userLoginFrom.bindFromRequest.continue {
+        case Success(data) =>
+          val credentials = Credentials(data.uid, data.password)
+          WebSecurity.login(request, credentials, authenticator) {
+            _.user match {
+              case Success(_) =>
+                SeeOther(data.redirect.flatMap(nonEmptyOption).getOrElse(Pages.defaultLandingPage.url))
+              case Failure(e) =>
+                Redirect(Pages.loginPage) withError e
             }
-          case Failure(error) =>
-            Future.successful(Redirect(Pages.loginPage) withError error)
-        }
-    }
+          }
+        case Failure(error) =>
+          Future.successful(Redirect(Pages.loginPage) withError error)
+      }
   }
 
   def logout = authenticatedAction async {
