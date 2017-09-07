@@ -2,7 +2,7 @@ package persistence.repository
 
 import java.sql.Timestamp
 import java.util.Date
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
 import models.repository._

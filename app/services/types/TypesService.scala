@@ -1,5 +1,5 @@
 package services.types
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import models.repository.types.{TypeRepositoryRec, TypeRepositoryRecDetails}
 import persistence.repository.Repository

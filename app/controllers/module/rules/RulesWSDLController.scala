@@ -5,11 +5,10 @@ import javax.inject.Inject
 import controllers.module.rules.RulesWSDLController.TypeNotFoundException
 import controllers.{InternationalInjectedController, Pages}
 import models.repository.rules.RulesModelXML
-import models.repository.types.TypeRepositoryRec
 import models.repository.types.TypesModel._
 import play.api.mvc._
-import services.execution.RulesWSDLDoc._
 import services.execution.RulesWSDLDoc
+import services.execution.RulesWSDLDoc._
 import services.rules.RulesService
 import services.types.TypeDefinitionService
 import services.types.TypeDefinitionService.TypeCacheType

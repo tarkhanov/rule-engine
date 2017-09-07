@@ -12,9 +12,6 @@ import services.types.TypesService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-/**
- * Created by Sergey Tarkhanov on 5/30/2015.
- */
 class TypesController @Inject()(authenticatedAction: AuthAction, typesService: TypesService)(implicit ec: ExecutionContext) extends InternationalInjectedController {
 
   def create = authenticatedAction async {

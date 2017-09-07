@@ -1,7 +1,7 @@
 package controllers
 
 import java.io.{PrintWriter, StringWriter}
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import play.api.http.HttpErrorHandler
 import play.api.i18n.{I18nSupport, MessagesApi}

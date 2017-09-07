@@ -1,6 +1,6 @@
 package persistence
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
 import play.api.db.slick.DatabaseConfigProvider

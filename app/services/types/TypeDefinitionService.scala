@@ -1,7 +1,7 @@
 package services.types
 
 import java.io.StringReader
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import models.repository.types.{TypeModelXML, TypeRepositoryRec}
 import models.repository.types.TypesModel.{Type, TypeDefs}

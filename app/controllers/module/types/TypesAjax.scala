@@ -11,9 +11,6 @@ import services.types.TypesService
 
 import scala.concurrent.Future
 
-/**
- * Created by Sergey Tarkhanov on 7/17/2015.
- */
 class TypesAjax @Inject()(authenticatedAction: AuthAction, typesService: TypesService) extends InternationalInjectedController {
 
   implicit object writeListOfPairs extends Writes[List[(String, String)]] {

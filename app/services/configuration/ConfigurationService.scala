@@ -1,7 +1,7 @@
 package services.configuration
 
 import java.io.InputStream
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import services.configuration.ConfigurationService.UploadStatus
 import services.rules.RulesService
