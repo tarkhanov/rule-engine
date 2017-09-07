@@ -1,8 +1,8 @@
 package models.users
 
-import services.auth.AuthenticationUser
+import controllers.security.AuthenticatedUser
 
-case class User(login: String, salt: String, password: String) extends AuthenticationUser {
+case class User(login: String, salt: String, password: String) extends AuthenticatedUser {
   def uid: String = login
 }
 

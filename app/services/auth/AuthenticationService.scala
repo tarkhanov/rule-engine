@@ -1,8 +1,9 @@
 package services.auth
 
 import java.util.Calendar
+import javax.inject.Inject
 
-import controllers.security.Authenticator
+import controllers.security.{AuthenticatedUser, Authenticator}
 import controllers.security.WebSecurity.Credentials
 import org.apache.commons.codec.digest.DigestUtils
 import services.auth.AuthenticationService.{AuthenticationException, UserNotFoundException}
@@ -10,16 +11,12 @@ import services.auth.AuthenticationService.{AuthenticationException, UserNotFoun
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-/**
- * Created by Sergey Tarkhanov on 1/28/2015.
- */
-
 object AuthenticationService {
   class AuthenticationException(message: String) extends RuntimeException(message)
   class UserNotFoundException(message: String) extends RuntimeException(message)
 }
 
-abstract class AuthenticationService[UserType <: AuthenticationUser](userService: AuthenticationUserService[UserType]) extends Authenticator[UserType] {
+class AuthenticationService[UserType <: AuthenticatedUser] @Inject()(userService: AuthenticationUserService[UserType]) extends Authenticator {
 
   def salt: String = Calendar.getInstance().get(Calendar.MILLISECOND).toString
 

@@ -4,10 +4,9 @@ import javax.inject.Inject
 
 import controllers.AuthenticationController.LoginFormData
 import controllers.security.WebSecurity.Credentials
-import controllers.security.{AuthAction, WebSecurity}
+import controllers.security.{AuthAction, Authenticator, WebSecurity}
 import play.api.data.Forms._
 import play.api.data._
-import services.AuthService
 import utils._
 
 import scala.concurrent.Future
@@ -19,7 +18,7 @@ object AuthenticationController {
 
 }
 
-class AuthenticationController @Inject()(authenticatedAction: AuthAction, authService: AuthService) extends InternationalInjectedController {
+class AuthenticationController @Inject()(authenticatedAction: AuthAction, authenticator: Authenticator) extends InternationalInjectedController {
 
   def login = Action {
     implicit request =>
@@ -37,7 +36,7 @@ class AuthenticationController @Inject()(authenticatedAction: AuthAction, authSe
       userLoginFrom.bindFromRequest.continue {
         case Success(data) =>
           val credentials = Credentials(data.uid, data.password)
-          WebSecurity.login(request, credentials, authService) {
+          WebSecurity.login(request, credentials, authenticator) {
             _.user match {
               case Success(_) =>
                 SeeOther(data.redirect.flatMap(nonEmptyOption).getOrElse(Pages.defaultLandingPage.url))

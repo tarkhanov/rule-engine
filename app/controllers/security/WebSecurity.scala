@@ -3,7 +3,6 @@ package controllers.security
 import controllers.Pages
 import play.api.http.HttpVerbs
 import play.api.mvc._
-import services.auth.AuthenticationUser
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -20,9 +19,9 @@ object WebSecurity {
 
   private val USER_SESSION_KEY = "user"
 
-  def login[U <: AuthenticationUser](request: Request[RequestBody], credentials: Credentials, authenticator: Authenticator[U])
-                                    (block: TryAuthenticatedRequest[RequestBody, U] => Result)
-                                    (implicit ec: ExecutionContext): Future[Result] = {
+  def login(request: Request[RequestBody], credentials: Credentials, authenticator: Authenticator)
+                                   (block: TryAuthenticatedRequest[RequestBody, AuthenticatedUser] => Result)
+                                   (implicit ec: ExecutionContext): Future[Result] = {
 
     authenticator.authenticate(credentials).map {
       case Success(user) =>

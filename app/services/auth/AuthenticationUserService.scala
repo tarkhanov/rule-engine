@@ -1,11 +1,10 @@
 package services.auth
 
+import controllers.security.AuthenticatedUser
+
 import scala.concurrent.Future
 
-/**
- * Created by Sergey Tarkhanov on 5/24/2015.
- */
-trait AuthenticationUserService[User <: AuthenticationUser] {
+trait AuthenticationUserService[User <: AuthenticatedUser] {
 
   def getUser(uid: String): Future[Option[User]]
 

@@ -1,36 +1,11 @@
 package services.monitoring
 
-import javax.inject.{Inject, Singleton}
-
 import akka.NotUsed
-import akka.actor.{ActorRef, ActorSystem}
-import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.stream.{Materializer, OverflowStrategy}
+import akka.stream.scaladsl.Flow
 import play.api.libs.json.JsValue
-import services.monitoring.MonitoringActor.{Subscribe, UnSubscribe}
 
-@Singleton
-class MonitoringService @Inject()(implicit system: ActorSystem, mat: Materializer) {
+trait MonitoringService {
 
-  private val monitoringActor = system.actorOf(MonitoringActor.props)
+  def join(): Flow[Nothing, JsValue, NotUsed]
 
-  private val bufferSize = 16
-  private val overflowStrategy: OverflowStrategy = OverflowStrategy.dropNew
-
-  def join(): Flow[Nothing, JsValue, NotUsed] = {
-    val (outActor: ActorRef, publisher) = Source
-      .actorRef[JsValue](bufferSize, overflowStrategy)
-      .toMat(Sink.asPublisher(false))(Keep.both).run()
-
-    val source = Source.fromPublisher(publisher)
-    val sink = Sink.actorRef(monitoringActor, UnSubscribe(outActor))
-
-    val sinkWithSubscription = Sink.fromSubscriber(
-      Source.asSubscriber[Any]
-      .merge(Source.single(Subscribe(outActor)))
-      .toMat(sink)(Keep.left).run()
-    )
-
-    Flow.fromSinkAndSource(sinkWithSubscription, source)
-  }
 }

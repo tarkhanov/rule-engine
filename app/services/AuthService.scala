@@ -9,6 +9,8 @@ import services.auth.AuthenticationService
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
+
+/*
 @Singleton
 class AuthService @Inject()(userService: UserService)(implicit ec: ExecutionContext) extends AuthenticationService[User](userService) with StrictLogging {
 
@@ -42,3 +44,4 @@ class AuthService @Inject()(userService: UserService)(implicit ec: ExecutionCont
   init()
 
 }
+*/
