@@ -7,7 +7,6 @@ import persistence.repository.Repository
 
 import scala.concurrent.Future
 
-@Singleton
 class RepositoryService @Inject()(repository: Repository) {
 
   def list(folderId: Option[Long] = None, currentUser: String, offset: Int, length: Int): Future[ListRepository] = {

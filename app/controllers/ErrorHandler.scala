@@ -10,7 +10,6 @@ import play.api.mvc.{RequestHeader, _}
 
 import scala.concurrent._
 
-@Singleton
 class ErrorHandler @Inject()(val messagesApi: MessagesApi) extends HttpErrorHandler with I18nSupport {
 
   def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {

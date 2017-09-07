@@ -1,6 +1,6 @@
 package services.rules
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import models.repository.rules.RulesModel._
 import models.repository.rules.RulesModelXML._
@@ -16,10 +16,7 @@ object RulesService {
   class RuleNotFound(message: String) extends Exception(message)
 }
 
-@Singleton
 class RulesService @Inject()(repository: Repository, rulesPythonExecutor: RulesPythonExecutor)(implicit ex: ExecutionContext) extends ConfigureRulesService {
-
-
 
   private val rulesRepository = repository.rulesRepository
 

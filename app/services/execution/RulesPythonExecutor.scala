@@ -1,12 +1,11 @@
 package services.execution
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
 import models.repository.rules.RulesModel.{Result, Rule}
 import models.repository.rules.RulesModelXML
-import models.repository.types.TypeRepositoryRec
-import models.repository.types.TypesModel.{Type, TypeDefs}
+import models.repository.types.TypesModel.TypeDefs
 import org.python.core._
 import org.python.util.PythonInterpreter
 import services.execution.RulesPythonExecutor._
@@ -32,7 +31,6 @@ object RulesPythonExecutor {
 
 }
 
-@Singleton
 class RulesPythonExecutor @Inject()(typeDefinitionService: TypeDefinitionService)(implicit ec: ExecutionContext) extends StrictLogging {
 
   def execute(requestData: RequestDataType, id: Long, definition: String): Future[List[(Rule, ConditionResult, Option[BodyResult])]] = {

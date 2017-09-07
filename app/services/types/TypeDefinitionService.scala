@@ -16,7 +16,6 @@ object TypeDefinitionService {
   type TypeCacheType = mutable.Map[String, (TypeRepositoryRec, Type)]
 }
 
-@Singleton
 class TypeDefinitionService @Inject()(typesService: TypesService)(implicit ec: ExecutionContext) {
 
   def newTypeCache: TypeCacheType = mutable.Map[String, (TypeRepositoryRec, Type)]()

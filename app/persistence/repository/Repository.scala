@@ -24,7 +24,6 @@ object Repository {
   val COMMIT_ACTION = "COMMIT"
 }
 
-@Singleton
 class Repository @Inject()(dbConfigProvider: DatabaseConfigProvider,
                            dbUtil: DBUtil,
                            configuration: Configuration)

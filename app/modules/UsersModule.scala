@@ -6,25 +6,19 @@ import com.google.inject.AbstractModule
 import com.typesafe.scalalogging.StrictLogging
 import controllers.security.Authenticator
 import models.users.User
-import modules.UsersModule.{InitializeUsers, Initializer, UserAuthenticationService}
-import persistence.users.{UserRepository, UserRepositoryImpl}
+import modules.UsersModule.{InitializeUsers, UserAuthenticationService}
+import persistence.users.UserRepository
+import services.UserService
 import services.auth.AuthenticationService
-import services.{UserService, UserServiceImpl}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 object UsersModule {
 
-  // TODO: Move user creation to startup handler
-
-  trait Initializer {
-
-  }
-
   class InitializeUsers @Inject()(userService: UserService)
                                  (implicit ec: ExecutionContext)
-    extends AuthenticationService[User](userService) with Initializer with StrictLogging {
+    extends AuthenticationService[User](userService) with StrictLogging {
 
     private def defineUser(login: String, password: String): Unit = {
 
@@ -60,10 +54,10 @@ class UsersModule extends AbstractModule {
 
   override def configure(): Unit = {
 
-    bind(classOf[UserRepository]).to(classOf[UserRepositoryImpl])
-    bind(classOf[UserService]).to(classOf[UserServiceImpl])
+    bind(classOf[UserRepository])
+    bind(classOf[UserService])
     bind(classOf[Authenticator]).to(classOf[UserAuthenticationService])
-    bind(classOf[Initializer]).to(classOf[InitializeUsers]).asEagerSingleton()
+    bind(classOf[InitializeUsers]).asEagerSingleton()
 
   }
 }

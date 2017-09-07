@@ -7,7 +7,6 @@ import persistence.repository.Repository
 import scala.concurrent.Future
 import scala.util.Try
 
-@Singleton
 class TypesService @Inject()(repository: Repository) extends ConfigureTypesService {
 
   private val typesRepository = repository.typesRepository

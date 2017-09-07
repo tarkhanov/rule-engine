@@ -11,7 +11,6 @@ import slick.lifted.AbstractTable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 
-@Singleton
 class DBUtil @Inject()(dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) extends StrictLogging {
 
   private val dbConfig = dbConfigProvider.get[JdbcProfile]

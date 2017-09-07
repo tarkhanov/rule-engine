@@ -1,16 +1,21 @@
 package services
 
+import javax.inject.Inject
+
 import models.users.User
+import persistence.users.UserRepository
 import services.auth.AuthenticationUserService
 
 import scala.concurrent.Future
 
-trait UserService extends AuthenticationUserService[User] {
+class UserService @Inject()(userRepository: UserRepository) extends AuthenticationUserService[User] {
 
-  def create(user: User): Future[Unit]
+  override def getUser(uid: String): Future[Option[User]] = userRepository.getUser(uid)
 
-  def list(offset: Int, length: Int): Future[Seq[User]]
+  def create(user: User): Future[Unit] = userRepository.create(user)
 
-  def count: Future[Int]
+  def list(offset: Int, length: Int): Future[Seq[User]] = userRepository.list(offset, length)
+
+  def count: Future[Int] = userRepository.count
 
 }

@@ -10,17 +10,12 @@ import services.types.TypesService
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-/**
- * Created by Sergey Tarkhanov on 4/1/2015.
- */
-
 object ConfigurationService {
 
   case class UploadStatus(id: Long, message: String)
 
 }
 
-@Singleton
 class ConfigurationService @Inject()(typesService: TypesService, rulesService: RulesService)(implicit ec: ExecutionContext) {
 
   private val configurationFilters: Seq[ConfigurationFilter] = List(typesService, rulesService)

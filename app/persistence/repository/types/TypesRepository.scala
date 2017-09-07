@@ -15,7 +15,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 import scala.xml.XML
 
-class TypesRepository(val repository: Repository, dbUtil: DBUtil)(implicit ec: ExecutionContext) extends RepositoryExtension with StrictLogging {
+class TypesRepository(val repository: Repository, dbUtil: DBUtil)
+                     (implicit ec: ExecutionContext)
+                      extends RepositoryExtension with StrictLogging {
 
   import repository.dbConfig._
   import profile.api._

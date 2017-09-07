@@ -15,7 +15,9 @@ import scala.util.control.NonFatal
 import scala.util.matching.Regex
 import scala.util.{Success, Try}
 
-class RulesRepository(val repository: Repository, typesRepository: TypesRepository, dbUtil: DBUtil)(implicit ec: ExecutionContext) extends RepositoryExtension with StrictLogging {
+class RulesRepository(val repository: Repository, typesRepository: TypesRepository, dbUtil: DBUtil)
+                     (implicit ec: ExecutionContext)
+                      extends RepositoryExtension with StrictLogging {
 
   import repository.dbConfig._
   import profile.api._
