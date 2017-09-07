@@ -7,6 +7,7 @@ import com.typesafe.scalalogging.StrictLogging
 import controllers.security.Authenticator
 import models.users.User
 import modules.UsersModule.AuthenticationWithUserCreationService
+import persistence.users.{UserRepository, UserRepositoryImpl}
 import services.auth.AuthenticationService
 import services.{UserService, UserServiceImpl}
 
@@ -51,8 +52,9 @@ class UsersModule extends AbstractModule {
 
   override def configure(): Unit = {
 
+    bind(classOf[UserRepository]).to(classOf[UserRepositoryImpl])
     bind(classOf[UserService]).to(classOf[UserServiceImpl])
-    bind(classOf[Authenticator]).to(classOf[AuthenticationWithUserCreationService])
+    bind(classOf[Authenticator]).to(classOf[AuthenticationWithUserCreationService]).asEagerSingleton()
 
   }
 }
