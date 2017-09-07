@@ -11,10 +11,6 @@ import services.monitoring.MonitoringActor.{Subscribe, UnSubscribe, UpdateStatus
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-/**
- * Created by Sergey Tarkhanov on 8/15/2015.
- */
-
 object MonitoringActor {
 
   def props: Props = Props(new MonitoringActor)
@@ -102,7 +98,6 @@ class MonitoringActor extends Actor with ActorLogging {
       eventBus.subscribe(actor, "")
       context.become(receiverWhileJobIsRunning(start()))
     case _: UnSubscribe =>
-      Unit
   }
 
 }

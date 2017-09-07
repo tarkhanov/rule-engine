@@ -14,7 +14,7 @@ class MonitoringService @Inject()(implicit system: ActorSystem, mat: Materialize
 
   private val monitoringActor = system.actorOf(MonitoringActor.props)
 
-  private val bufferSize = 256
+  private val bufferSize = 16
   private val overflowStrategy: OverflowStrategy = OverflowStrategy.dropNew
 
   def join(): Flow[Nothing, JsValue, NotUsed] = {
@@ -25,13 +25,12 @@ class MonitoringService @Inject()(implicit system: ActorSystem, mat: Materialize
     val source = Source.fromPublisher(publisher)
     val sink = Sink.actorRef(monitoringActor, UnSubscribe(outActor))
 
-    val sinkWithFilter = Sink.fromSubscriber(
+    val sinkWithSubscription = Sink.fromSubscriber(
       Source.asSubscriber[Any]
-      .filter(_ => false)
       .merge(Source.single(Subscribe(outActor)))
       .toMat(sink)(Keep.left).run()
     )
 
-    Flow.fromSinkAndSource(sinkWithFilter, source)
+    Flow.fromSinkAndSource(sinkWithSubscription, source)
   }
 }
