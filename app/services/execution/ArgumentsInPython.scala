@@ -36,7 +36,7 @@ object ArgumentsInPython {
   // TODO: Escape special characters in parameters
 
   private def convertIntegerToPythonInteger(int: Int) = int.toString
-  private def convertStringToPythonString(str: String) = "\"\"\"" + str + "\"\"\""
+  private def convertStringToPythonString(str: String) = "\"\"\"" + str.replace("\"\"\"", "\\\"\\\"\\\"") + "\"\"\""
   private def convertSeqToPythonList(spo: Seq[String]) = spo.mkString("[", ", ", "]")
   private def convertSeqOfFieldsToPythonObj(fields: Seq[(String, String)]) =
     "objectview({ " + fields.map { case (fieldName, value) => s"'$fieldName': $value" }.mkString(", ") + " })"
