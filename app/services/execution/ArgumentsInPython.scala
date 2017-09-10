@@ -21,7 +21,7 @@ object ArgumentsInPython {
       val values = (argName: String) => requestData.getOrElse(argName, Seq.empty).take(1)
       generatePythonCodeForArgument(arg.name, arg.`type`, values, types, typeCache).map(arg.name -> _)
     })
-    Future.sequence(futures).map(_.toMap.mapValues(_.headOption.orNull)).map {
+    Future.sequence(futures).map(_.toMap.mapValues(_.headOption.getOrElse("None"))).map {
       map =>
         objectView + "\n" + map.map { case (k,v) => s"$k = $v" }.mkString("\n")
     }
@@ -40,7 +40,6 @@ object ArgumentsInPython {
   private def convertSeqToPythonList(spo: Seq[String]) = spo.mkString("[", ", ", "]")
   private def convertSeqOfFieldsToPythonObj(fields: Seq[(String, String)]) =
     "objectview({ " + fields.map { case (fieldName, value) => s"'$fieldName': $value" }.mkString(", ") + " })"
-
 
   private def generatePythonCodeForArgument(name: String,
                                             typeId: String,
@@ -76,7 +75,7 @@ object ArgumentsInPython {
             val mapOfFields = requestDataValues(name).headOption.map(_.right.get.asInstanceOf[RequestDataType])
             val pyFieldsFutures = typeDef.fields.map(f => {
               def provideData(fieldName: String) = mapOfFields.map(_.getOrElse(fieldName, Seq.empty).take(1)).getOrElse(Seq.empty) // Get 1st argument of structure
-              generatePythonCodeForArgument(f.name, f.typeDef, provideData, types, typeCache).map(f.name -> _.headOption.orNull)
+              generatePythonCodeForArgument(f.name, f.typeDef, provideData, types, typeCache).map(f.name -> _.headOption.getOrElse("None"))
             })
             Future.sequence(pyFieldsFutures).map(fields => Seq(convertSeqOfFieldsToPythonObj(fields)))
           case _ =>

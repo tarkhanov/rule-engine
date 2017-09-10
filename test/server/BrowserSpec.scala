@@ -19,7 +19,7 @@ class BrowserSpec extends PlaySpec
   override def createWebDriver(): WebDriver = HtmlUnitFactory.createWebDriver(false)
 
   private val conf: Configuration = Configuration(ConfigFactory.parseString(
-    """play.filters.enabled = []
+    """play.filters.https.redirectEnabled = false
     """.stripMargin))
 
   override def fakeApplication(): Application =
