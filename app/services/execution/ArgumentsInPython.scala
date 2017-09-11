@@ -1,7 +1,7 @@
 package services.execution
 
 import models.repository.rules.RulesModel.Argument
-import models.repository.types.TypesModel.{Type, TypeDefs}
+import models.repository.types.TypesModel.TypeDefs
 import services.execution.RulesPythonExecutor.{RequestDataType, RequestDataValueType}
 import services.types.TypeDefinitionService
 import services.types.TypeDefinitionService.TypeCacheType

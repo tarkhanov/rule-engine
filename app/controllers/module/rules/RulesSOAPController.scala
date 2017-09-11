@@ -79,7 +79,7 @@ class RulesSOAPController @Inject()(rules: RulesService) extends InternationalIn
     }
 
   private def envelope(content: Elem): Elem =
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rul="http://onbpm.com/rules/">
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rul="http://example.com/rules/">
       <soapenv:Header/>
       <soapenv:Body>
         {content}

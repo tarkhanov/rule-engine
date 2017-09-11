@@ -64,7 +64,7 @@ class MonitoringActor extends Actor with ActorLogging {
 
   import context.dispatcher
 
-  private val eventBus = new MonitoringEventBus()
+  private var subscribers = Set.empty[ActorRef]
 
   private def start(): Cancellable = {
     log.debug("Start Monitoring")
@@ -82,20 +82,21 @@ class MonitoringActor extends Actor with ActorLogging {
 
   def receiverWhileJobIsRunning(job: Cancellable): Receive = {
     case Subscribe(actor) =>
-      eventBus.subscribe(actor, "")
+      subscribers += actor
+
     case UnSubscribe(actor) =>
-      eventBus.unsubscribe(actor)
-      if (eventBus.isEmpty) {
+      subscribers -= actor
+      if (subscribers.isEmpty) {
         stop(job)
         context.become(receiverWhileJobIsStopped())
       }
     case UpdateStatusInfo(status) =>
-      eventBus.publish(status)
+      subscribers.foreach(_ ! status)
   }
 
   def receiverWhileJobIsStopped(): Receive = {
     case Subscribe(actor) =>
-      eventBus.subscribe(actor, "")
+      subscribers += actor
       context.become(receiverWhileJobIsRunning(start()))
     case _: UnSubscribe =>
   }

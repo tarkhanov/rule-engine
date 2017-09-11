@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import akka.event.{EventBus, LookupClassification}
 import play.api.libs.json.JsValue
 
+@Deprecated
 class MonitoringEventBus extends EventBus with LookupClassification {
 
   type Event = JsValue
