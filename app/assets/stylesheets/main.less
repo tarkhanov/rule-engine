@@ -196,18 +196,27 @@ TABLE.header + .panel {
 .create-type-link,
 .create-ruleset-link {
 	display: block;
-	padding: 86px 0 0 0;
+	padding: 110px 20px 12px 20px;
 	float: left;
 	width: 100px;
-	background: transparent url(/assets/images/support-icon.png) 50% 0 no-repeat;
+	background: transparent url(/assets/images/support-icon.png) 50% 20px no-repeat;
 	text-align: center;
-    margin: 0 20px;
+    margin: 0;
+    border: 0 none;
+    border-radius: 4px;
 }
 .create-ruleset-link {
 	background-image: url(/assets/images/networking-icon.png);
 }
 .create-folder-link {
 	background-image: url(/assets/images/folder-icon.png);
+}
+
+.create-folder-link:HOVER,
+.create-type-link:HOVER,
+.create-ruleset-link:HOVER {
+    border: 0 none;
+    background-color: #f0f0f0;
 }
 
 A.type {

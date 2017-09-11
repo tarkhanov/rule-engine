@@ -41,7 +41,7 @@ class AlwaysOnMonitoringActor extends Actor with ActorLogging {
     }
   }
 
-  private val historyLength = 200
+  private val historyLength = 120
   private var updateHistory = Vector.empty[JsObject]
 
   def receive: Receive = {
