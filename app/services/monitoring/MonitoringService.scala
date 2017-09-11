@@ -25,9 +25,9 @@ class MonitoringService @Inject()(implicit system: ActorSystem, mat: Materialize
     val sink = Sink.actorRef(monitoringActor, UnSubscribe(outActor))
 
     val sinkWithSubscription = Sink.fromSubscriber(
-      Source.asSubscriber[Any]
-      .merge(Source.single(Subscribe(outActor)))
-      .toMat(sink)(Keep.left).run()
+      Source.single(Subscribe(outActor))
+        .concatMat(Source.asSubscriber[Any])(Keep.right)
+        .toMat(sink)(Keep.left).run()
     )
 
     Flow.fromSinkAndSource(sinkWithSubscription, source)
