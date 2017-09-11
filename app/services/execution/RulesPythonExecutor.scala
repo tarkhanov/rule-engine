@@ -42,14 +42,19 @@ class RulesPythonExecutor @Inject()(typeDefinitionService: TypeDefinitionService
       }
     }
 
-    val rulesDef = RulesModelXML.parse(definition)
-    val arguments = rulesDef.arguments.list
-    val types = typeDefinitionService.newTypeCache
-
-    ArgumentsInPython.generateArguments(arguments, requestData, typeDefinitionService, types).flatMap { argumentsAsCode =>
-      logger.debug("Arguments converted into python code: \n" + argumentsAsCode)
-      val futures = rulesDef.rules.list.map(rule => executeRule(rule, argumentsAsCode, rulesDef.results.list, types))
-      Future.sequence(futures)
+    try {
+      val rulesDef = RulesModelXML.parse(definition)
+      val arguments = rulesDef.arguments.list
+      val types = typeDefinitionService.newTypeCache
+      ArgumentsInPython.generateArguments(arguments, requestData, typeDefinitionService, types).flatMap { argumentsAsCode =>
+        logger.debug("Arguments converted into python code: \n" + argumentsAsCode)
+        val futures = rulesDef.rules.list.map(rule => executeRule(rule, argumentsAsCode, rulesDef.results.list, types))
+        Future.sequence(futures)
+      }
+    }
+    catch {
+      case ex: Throwable =>
+        Future.failed(ex)
     }
   }
 
