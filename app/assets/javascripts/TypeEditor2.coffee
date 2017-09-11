@@ -51,6 +51,8 @@ $ ->
             },
             type : 'POST',
             success: () ->
-                window.location = "/private";
+                window.location = "/private"
+            error: () ->
+                alert("Unable to save type")
         })
         e.preventDefault()
