@@ -7,11 +7,11 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{Materializer, OverflowStrategy}
 import play.api.libs.json.JsValue
-import services.monitoring.MonitoringActor.{Subscribe, UnSubscribe}
+import services.monitoring.AlwaysOnMonitoringActor.{Subscribe, UnSubscribe}
 
 class MonitoringService @Inject()(implicit system: ActorSystem, mat: Materializer) {
 
-  private val monitoringActor = system.actorOf(MonitoringActor.props)
+  private val monitoringActor = system.actorOf(AlwaysOnMonitoringActor.props)
 
   private val bufferSize = 16
   private val overflowStrategy = OverflowStrategy.dropNew

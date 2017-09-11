@@ -2,14 +2,14 @@ package services.monitoring
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Cancellable, Props}
 import play.api.libs.json.JsObject
-import services.monitoring.MonitoringActor.{Subscribe, UnSubscribe, UpdateStatusInfo}
+import services.monitoring.AlwaysOnMonitoringActor.{Subscribe, UnSubscribe, UpdateStatusInfo}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-object MonitoringActor {
+object AlwaysOnMonitoringActor {
 
-  def props: Props = Props(new MonitoringActor)
+  def props: Props = Props(new AlwaysOnMonitoringActor)
 
   case class Subscribe(actor: ActorRef)
 
@@ -19,53 +19,45 @@ object MonitoringActor {
 
 }
 
-class MonitoringActor extends Actor with ActorLogging {
+class AlwaysOnMonitoringActor extends Actor with ActorLogging {
 
   import context.dispatcher
 
   private var subscribers = Set.empty[ActorRef]
 
-  private def start(): Unit = {
-    stop()
+  private var job: Option[Cancellable] = None
+
+  override def preStart(): Unit = {
     log.debug("Start Monitoring")
     job = Some(context.system.scheduler.schedule(0 seconds, 1 second) {
       self ! UpdateStatusInfo(MonitoringUtil.collectStatusInfo())
     })
   }
 
-  private def stop(): Unit = {
+  override def postStop(): Unit = {
     job.foreach { c =>
       log.debug("Stop Monitoring")
       c.cancel()
     }
   }
 
-  private var job: Option[Cancellable] = None
+  private val historyLength = 200
+  private var updateHistory = Vector.empty[JsObject]
 
-  override def postStop(): Unit = stop()
-
-  def receive: Receive = receiverWhileJobIsStopped
-
-  def receiverWhileJobIsRunning: Receive = {
+  def receive: Receive = {
     case Subscribe(actor) =>
       subscribers += actor
+      updateHistory.foreach(actor ! _)
 
     case UnSubscribe(actor) =>
       subscribers -= actor
-      if (subscribers.isEmpty) {
-        stop()
-        context.become(receiverWhileJobIsStopped)
-      }
-    case UpdateStatusInfo(status) =>
-      subscribers.foreach(_ ! status)
-  }
 
-  def receiverWhileJobIsStopped: Receive = {
-    case Subscribe(actor) =>
-      subscribers += actor
-      start()
-      context.become(receiverWhileJobIsRunning)
-    case _: UnSubscribe =>
+    case UpdateStatusInfo(status) =>
+      updateHistory :+= status
+      if (updateHistory.length > historyLength) {
+        updateHistory = updateHistory.takeRight(historyLength)
+      }
+      subscribers.foreach(_ ! status)
   }
 
 }
