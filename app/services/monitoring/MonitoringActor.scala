@@ -7,6 +7,7 @@ import services.monitoring.MonitoringActor.{Subscribe, UnSubscribe, UpdateStatus
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
+@Deprecated
 object MonitoringActor {
 
   def props: Props = Props(new MonitoringActor)
@@ -19,6 +20,7 @@ object MonitoringActor {
 
 }
 
+@Deprecated
 class MonitoringActor extends Actor with ActorLogging {
 
   import context.dispatcher

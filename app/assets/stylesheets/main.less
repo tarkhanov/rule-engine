@@ -443,3 +443,60 @@ BODY {
         }
     }
 }
+
+
+.type-editor {
+
+    DIV.fieldName {
+        float: left;
+        width: 50%;
+    }
+
+    DIV.fieldName INPUT {
+        width: 80%;
+        margin: 4px 0;
+    }
+
+    DIV.fieldType {
+        float: left;
+        width: 30%;
+        padding: 6px 0;
+    }
+
+    DIV.fieldActions {
+        float: left;
+        width: 20%;
+        padding: 6px 0;
+    }
+
+    DIV.fieldActions .up,
+    DIV.fieldActions .down {
+        display: none;
+    }
+
+    DIV.fieldHeader {
+        font-weight: 600;
+    }
+
+    SPAN.type {
+        color: #008000;
+        font-weight: 600;
+    }
+
+    A.delete {
+        background: transparent url(/assets/images/remove.png) 50% 50% no-repeat;
+        width: 32px;
+        height: 32px;
+        display: block;
+        border-bottom: 0 none;
+        margin: 0 0 0 auto;
+        opacity: 0.6;
+    }
+    A.delete:HOVER {
+        opacity: 1;
+    }
+    A.delete SPAN {
+        visibility: hidden;
+    }
+
+}
