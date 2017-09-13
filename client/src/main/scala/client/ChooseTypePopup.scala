@@ -26,9 +26,9 @@ object ChooseTypePopup {
     }
   }
 
-  private val matchList: Regex = "^list\\[(.+)\\]$".r //.exec currentType
-  private val matchSeq: Regex = "^sequence:(.+)$".r //.exec currentType
-  private val matchId: Regex = "^id:(.+)$".r //.exec currentType
+  private val matchList: Regex = "^list\\[(.+)\\]$".r
+  private val matchSeq: Regex = "^sequence:(.+)$".r
+  private val matchId: Regex = "^id:(.+)$".r
 
   @js.native
   trait TypeAndName extends js.Object {
