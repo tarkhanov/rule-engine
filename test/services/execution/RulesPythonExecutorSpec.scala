@@ -11,9 +11,10 @@ import services.execution.RulesPythonExecutor.{BodyResult, ConditionResult}
 import services.types.TypeDefinitionService
 
 import scala.collection.mutable
-import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.xml.Elem
 
 class RulesPythonExecutorSpec extends WordSpec with MustMatchers with MockitoSugar  {
 
@@ -41,24 +42,29 @@ class RulesPythonExecutorSpec extends WordSpec with MustMatchers with MockitoSug
         )
       )
 
-      val definition =
-        """<RuleSet seq="CMP0" name="BasicRuleSet">
-          |  <arguments>
-          |    <argument name="argument1" type="string"/><argument name="argument2" type="int"/><argument name="argument3" type="list[list[string]]"/>
-          |  </arguments>
-          |  <results>
-          |    <result name="result1" type="string"/>
-          |  </results>
-          |  <rules>
-          |    <rule name="Example">
-          |      <condition>argument1 == &quot;OK&quot;</condition>
-          |      <body>result1 = &quot;Success&quot;</body>
-          |    </rule>
-          |  </rules>
-          |</RuleSet>
-        """.stripMargin
+      val definition: Elem =
+        <RuleSet seq="CMP0" name="BasicRuleSet">
+          <arguments>
+            <argument name="argument1" type="string"/>
+            <argument name="argument2" type="int"/>
+            <argument name="argument3" type="list[list[string]]"/>
+          </arguments>
+          <results>
+            <result name="result1" type="string"/>
+          </results>
+          <rules>
+            <rule name="Example">
+              <condition>
+                {"argument1 == \"OK\""}
+              </condition>
+              <body>
+                {"result1 = \"Success\""}
+              </body>
+            </rule>
+          </rules>
+        </RuleSet>
 
-      val result = Await.result(executor.execute(requestData, 123, definition), 5.seconds)
+      val result = Await.result(executor.execute(requestData, 123, definition.buildString(true)), 10.seconds)
 
       result.length mustBe 1
       val (rule, condition, Some(body)) = result.head
@@ -96,31 +102,44 @@ class RulesPythonExecutorSpec extends WordSpec with MustMatchers with MockitoSug
       )
 
       val definition =
-        """<RuleSet seq="CMP0" name="BasicRuleSet">
-          |  <arguments>
-          |    <argument name="argument1" type="string"/><argument name="argument2" type="int"/><argument name="argument3" type="list[list[string]]"/>
-          |  </arguments>
-          |  <results>
-          |    <result name="result1" type="string"/>
-          |  </results>
-          |  <rules>
-          |    <rule name="Example1">
-          |      <condition>argument1 == &quot;OK&quot;</condition>
-          |      <body>result1 = &quot;Success1&quot;</body>
-          |    </rule>
-          |    <rule name="Example2">
-          |      <condition>argument2 == 123</condition>
-          |      <body>result1 = &quot;Success2&quot;</body>
-          |    </rule>
-          |    <rule name="Example3">
-          |      <condition>argument3[0][0] == &quot;?&quot;</condition>
-          |      <body>result1 = &quot;Success3&quot;</body>
-          |    </rule>
-          |  </rules>
-          |</RuleSet>
-        """.stripMargin
+        <RuleSet seq="CMP0" name="BasicRuleSet">
+          <arguments>
+            <argument name="argument1" type="string"/>
+            <argument name="argument2" type="int"/>
+            <argument name="argument3" type="list[list[string]]"/>
+          </arguments>
+          <results>
+            <result name="result1" type="string"/>
+          </results>
+          <rules>
+            <rule name="Example1">
+              <condition>
+                {"argument1 == \"OK\""}
+              </condition>
+              <body>
+                {"result1 = \"Success1\""}
+              </body>
+            </rule>
+            <rule name="Example2">
+              <condition>
+                {"argument2 == 123"}
+              </condition>
+              <body>
+                {"result1 = \"Success2\""}
+              </body>
+            </rule>
+            <rule name="Example3">
+              <condition>
+                {"argument3[0][0] == \"?\""}
+              </condition>
+              <body>
+                {"result1 = \"Success3\""}
+              </body>
+            </rule>
+          </rules>
+        </RuleSet>
 
-      val result = Await.result(executor.execute(requestData, 123, definition), 5.seconds)
+      val result = Await.result(executor.execute(requestData, 123, definition.buildString(true)), 5.seconds)
 
       result.length mustBe 3
 
@@ -159,23 +178,26 @@ class RulesPythonExecutorSpec extends WordSpec with MustMatchers with MockitoSug
       )
 
       val definition =
-        """<RuleSet seq="CMe3" name="MyRuleSet">
-          |  <arguments>
-          |    <argument name="argument1" type="sequence:CMYe"/>
-          |  </arguments>
-          |  <results>
-          |    <result name="result1" type="string"/>
-          |  </results>
-          |  <rules>
-          |    <rule name="Example">
-          |      <condition>argument1.field1 == &quot;OK&quot;</condition>
-          |      <body>result1 = &quot;Success&quot;</body>
-          |    </rule>
-          |  </rules>
-          |</RuleSet>
-        """.stripMargin
+        <RuleSet seq="CMe3" name="MyRuleSet">
+          <arguments>
+            <argument name="argument1" type="sequence:CMYe"/>
+          </arguments>
+          <results>
+            <result name="result1" type="string"/>
+          </results>
+          <rules>
+            <rule name="Example">
+              <condition>
+                {"argument1.field1 == \"OK\""}
+              </condition>
+              <body>
+                {"result1 = \"Success\""}
+              </body>
+            </rule>
+          </rules>
+        </RuleSet>
 
-      val result: Seq[(Rule, ConditionResult, Option[BodyResult])] = Await.result(executor.execute(requestData, 123, definition), 5.seconds)
+      val result: Seq[(Rule, ConditionResult, Option[BodyResult])] = Await.result(executor.execute(requestData, 123, definition.buildString(true)), 5.seconds)
 
       result.length mustBe 1
       val (rule, condition, Some(body)) = result.head
