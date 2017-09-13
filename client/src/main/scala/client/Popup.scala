@@ -1,10 +1,12 @@
 package client
 
-import org.querki.jquery.{JQuery, _}
+import org.querki.jquery._
 import org.scalajs.dom.{Element, Event}
-
+import org.scalajs.dom._
+import scalatags.JsDom.all._
 import scala.scalajs.js
 import client.Popup.Modal
+import org.scalajs.dom.raw.HTMLElement
 
 object Popup {
 
@@ -18,7 +20,7 @@ object Popup {
 
   case class ModalOptions(top: String, overlay: Double)
 
-  implicit class Modal(jQuery: JQuery) {
+  implicit class Modal(popup: JQuery) {
 
     private def closeModal(overlay: JQuery, modal: JQuery) = {
       overlay.fadeOut(200)
@@ -31,7 +33,7 @@ object Popup {
       var overlay = $("#modal_overlay")
 
       if (overlay.length == 0) {
-        overlay = $("<div id='modal_overlay'></div>")
+        overlay = $(div(id := "modal_overlay").render)
         overlay.css(js.Dictionary[js.Any](
           "position" -> "fixed",
           "z-index" -> "100",
@@ -42,13 +44,13 @@ object Popup {
           "background" -> "#000",
           "display" -> "none"
         ))
-        $("body").append(overlay)
+        overlay.appendTo(document.body)
       }
 
-      jQuery.each { item: Element =>
+      popup.each { item: Element =>
 
         val modal = $(item)
-        val modal_height = modal.outerHeight()
+        //val modal_height = modal.outerHeight()
         val modal_width = modal.outerWidth()
 
         overlay.css(js.Dictionary[js.Any]("display" -> "block", "opacity" -> 0))
@@ -67,66 +69,67 @@ object Popup {
           "top" -> options.top
         ))
 
-        $("body").append(modal)
+        modal.appendTo(document.body)
 
         modal.fadeTo(200, 1);
       }
     }
 
     def hideModal(): JQuery = {
-      closeModal($("#modal_overlay"), jQuery)
+      closeModal($("#modal_overlay"), popup)
     }
   }
 }
 
+
 class Popup(title: String) {
 
-  private val content = $("""
-    <div class="popup">
-        <div><h2 class="header" style="margin: 0; background-color: #f8f8f8; padding: 30px 30px 24px 30px; text-align: center; border-top-right-radius: 4px; border-top-left-radius: 4px; border-bottom: 1px solid #ccc;"></h2></div>
-        <div style="padding: 2em 2em 1.8em 2em;" class="popup-content"></div>
-        <div style="text-align: right; padding: 20px; background-color: #f8f8f8; border-top: 2px solid #CCC; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px;">
-            <input type="submit" class="popup-apply" value="Apply" style="margin-right: 10px;" />
-            <input type="submit" class="popup-cancel" value="Cancel" />
-        </div>
-    </div>
-    """)
+  private val applyButton = input(`type` := "submit", `class` := "popup-apply", value := "Apply").render
+  private val jQueryApplyButton = $(applyButton)
+  private val cancelButton = input(`type` := "submit", `class` := "popup-cancel", value := "Cancel").render
+  private val wrapper = div(`class` := "popup-content").render
 
-  content.css(js.Dictionary[js.Any](
-    "border-radius" -> "4px",
-    "background-color" -> "#fff",
-    "box-shadow" -> "0 1px 4px #000",
-    "width" -> "630px"
-  ))
+  private val content = $(
+    div(`class` := "popup", style := "width: 630px",
+      div(
+        h2(`class` := "header",
+          title
+        )
+      ),
+      wrapper,
+      div(`class` := "buttons",
+        applyButton,
+        cancelButton)
+    ).render
+  )
 
-  content.find(".header").text(title)
+  jQueryApplyButton.hide()
 
-  private val applyButton: JQuery = content.find(".popup-apply")
-  applyButton.hide()
-
-  content.find(".popup-cancel").click { e: Event =>
-    content.hideModal() // asInstanceOf[ShowHide].hideModal()
+  cancelButton.onclick = { e: Event =>
+    hide()
     e.preventDefault()
   }
 
-  private val wrapper = content.find(".popup-content")
-
   def withApply(callback: () => Unit): Unit = {
-    applyButton.show()
-    applyButton.click { e: Event =>
+    jQueryApplyButton.show()
+    applyButton.onclick = { e: Event =>
       callback()
       e.stopPropagation()
       e.preventDefault()
     }
   }
 
-  def show(): Unit = content.showModal() //.asInstanceOf[ShowHide].showModal()
+  def show(): Unit = content.showModal()
 
-  def hide(): Unit = content.hideModal() // .asInstanceOf[ShowHide].hideModal()
+  def hide(): Unit = {
+    content.hideModal()
+    content.detach()
+  }
 
-  def update(value: JQuery): Unit = {
-    wrapper.empty()
-    value.appendTo(wrapper)
+  def update(value: HTMLElement): Unit = {
+    val jQueryWrapper = $(wrapper)
+    jQueryWrapper.empty()
+    jQueryWrapper.append(value)
   }
 
 }

@@ -1,11 +1,13 @@
 package client
 
 import org.querki.jquery._
-import org.scalajs.dom.{Element, Event}
+import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.{Element, Event, window}
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import scala.util.matching.Regex
+import scalatags.JsDom.all._
 
 @JSExportTopLevel("ChooseTypePopup")
 object ChooseTypePopup {
@@ -34,102 +36,95 @@ object ChooseTypePopup {
     def `type`: String = js.native
   }
 
+  private def drawSelector(currentType: String, availableTypes: Map[String, String]): Seq[HTMLElement] = {
+
+    val typeSelect = select(
+      availableTypes.map { case (typeName, typeValue) =>
+        option(value := typeValue, typeName)
+      }.toSeq,
+      option(value := "list", "list"),
+      option(value := "sequence", "sequence"),
+      option(value := "id", "id")
+    ).render
+
+    val param = span(`class` := "param").render
+
+    currentType match {
+      case matchList(listType) =>
+        typeSelect.value = "list"
+        param.appendChild(drawList(listType, availableTypes).render)
+      case matchSeq(seqType) =>
+        typeSelect.value = "sequence"
+        param.appendChild(drawSequence(seqType).render)
+      case matchId(idType) =>
+        typeSelect.value = "id"
+        param.appendChild(drawId(idType).render)
+      case _ =>
+        typeSelect.value = currentType
+    }
+
+    typeSelect.onchange = { (_: Event) =>
+      $(param).empty()
+      $(typeSelect).`val`().toString match {
+        case "list" => param.appendChild(drawList("string", availableTypes).render)
+        case "sequence" => param.appendChild(drawSequence("").render)
+        case "id" => param.appendChild(drawId("").render)
+        case _ =>
+      }
+    }
+
+    Seq(typeSelect, param)
+  }
+
+  private def drawSequence(seqType: String) =
+    span(
+      stringFrag(":"),
+      input(`type` := "text", value := seqType, style := "width: 140px; margin: 0 8px;")
+    )
+
+  private def drawId(idType: String) =
+    span(
+      ":",
+      input(`type` := "text", value := idType, style := "width: 140px; margin: 0 8px;")
+    )
+
+  private def drawList(listType: String, availableTypes: Map[String, String]) =
+    span(
+      "[",
+      span(`class` := "listParam", drawSelector(listType, availableTypes)),
+      "]"
+    )
+
   private def chooseTypePopup(currentType: String)(onChange: (String, String) => Unit): Popup = {
     val popup = new Popup(s"Type...")
-    val container = $("""<div class="typeDefRoot"></div>""")
-    val root = $("<div></div>")
-    root.append(container)
-    popup.update(root)
+    val container = div(`class` := "typeDefRoot").render
+    popup.update(container)
 
     var availableTypes = Map.empty[String, String]
-
-    def drawSelector(currentType: String, container: JQuery): JQuery = {
-      val typeSelect = $("""<select></select>""")
-      for ((key, value) <- availableTypes) {
-        val typeOption = $(s"""<option value="$value">$key</option> """)
-        typeOption.appendTo(typeSelect)
-      }
-      $("""<option value="list">list</option> """).appendTo(typeSelect)
-      $("""<option value="sequence">sequence</option> """).appendTo(typeSelect)
-      $("""<option value="id">id</option> """).appendTo(typeSelect)
-      typeSelect.appendTo(container)
-      val param = $("""<span class="param"></span>""")
-      param.appendTo(container)
-
-      currentType match {
-        case matchList(listType) =>
-          typeSelect.`val`("list")
-          drawList(listType, param)
-        case matchSeq(seqType) =>
-          typeSelect.`val`("sequence")
-          drawSequence(seqType, param)
-        case matchId(idType) =>
-          typeSelect.`val`("id")
-          drawId(idType, param)
-        case _ =>
-          typeSelect.`val`(currentType)
-      }
-
-      typeSelect.change { (el: Element, e: Event) =>
-        val t = $(el).`val`().toString
-        param.empty()
-        if (t == "list")
-          drawList("string", param)
-        else if (t == "sequence")
-          drawSequence("", param)
-        else if (t == "id")
-          drawId("", param)
-      }
-    }
-
-    def drawSequence(seqType: String, container: JQuery): JQuery = {
-      $(s""" <span>:<input type="text" value="$seqType" style="width: 140px; margin: 0 8px;" /></span> """)
-        .appendTo(container)
-    }
-
-    def drawId(idType: String, container: JQuery): JQuery = {
-      $(s""" <span>:<input type="text" value="$idType" style="width: 140px; margin: 0 8px;" /></span> """)
-        .appendTo(container)
-    }
-
-    def drawList(listType: String, container: JQuery): JQuery = {
-      val list = $(""" <span>[<span class="listParam"></span>]</span> """)
-      val param = list.find(".listParam")
-      drawSelector(listType, param)
-      list.appendTo(container)
-    }
-
     $.getJSON("/private/service/types/available.ajax?list=builtin", success = { (o: js.Object, _: String, _: JQueryXHR) =>
-      container.empty()
-      val d = o.asInstanceOf[js.Array[js.Object]]
-      $.each(d, { (item: js.Object) =>
-        val tn = item.asInstanceOf[TypeAndName]
-        availableTypes += tn.name -> tn.`type`
-      })
-      drawSelector(currentType, container)
-    })
+      $(container).empty()
+      val types = o.asInstanceOf[js.Array[TypeAndName]]
+      $.each(types, { item: TypeAndName => availableTypes += item.name -> item.`type` })
+      container.appendChild(drawSelector(currentType, availableTypes).render)
+    }).fail { (_: JQueryXHR, _: String, _: String) =>
+      window.alert("Unable to load data types")
+    }
 
     def readType(select: JQuery): String = {
-      val selectValue = select.`val`().toString
-      if (selectValue == "list") {
-        val paramSelect = select.parent().children(".param").children().children().children("select")
-        "list[" + readType(paramSelect) + "]"
+      select.`val`().toString match {
+        case "list" =>
+          "list[" + readType(select.parent().children(".param").find("select").first()) + "]"
+        case "sequence" =>
+          "sequence:" + select.parent().children(".param").find("INPUT").first().valueString
+        case "id" =>
+          "id:" + select.parent().children(".param").find("INPUT").first().valueString
+        case selectValue =>
+          selectValue
       }
-      else if (selectValue == "sequence") {
-        val input = select.parent().children(".param").children().children("INPUT").valueString
-        "sequence:" + input
-      }
-      else if (selectValue == "id") {
-        val input = select.parent().children(".param").children().children("INPUT").valueString
-        "id:" + input
-      }
-      else
-        selectValue
     }
 
     popup.withApply { () =>
-      val select = container.children("SELECT")
-      val `type` = readType(select)
+      val `type` = readType($(container).find("SELECT").first())
       onChange(`type`, `type`)
       popup.hide()
     }

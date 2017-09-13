@@ -5,5 +5,5 @@
 - Scala 2.12
 - Play 2.6
 - Slick 3 + Sqlite
-- JQuery + ~~CoffeeScript~~ rewritten in ScalaJS. 
+- JQuery + ~~CoffeeScript~~ rewritten in ScalaJS with Scala Tags. 
 - Less
