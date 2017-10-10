@@ -5,7 +5,7 @@ name := """rule-engine"""
 
 version := "1.0"
 
-scalaVersion := "2.12.3" // "2.11.11"
+scalaVersion := "2.12.3"
 
 lazy val client = (project in file("client"))
   .settings (
