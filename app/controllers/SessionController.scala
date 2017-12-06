@@ -18,7 +18,7 @@ class SessionController @Inject()(authenticatedAction: AuthAction, repositorySer
 
   def commit = authenticatedAction async {
     implicit request =>
-      repositoryService.commit(request.user).map {
+      repositoryService.commit(request.user.uid).map {
         _ => defaultRedirect
       }.recover {
         case ex: IllegalStateException => defaultRedirect withError ex
@@ -28,7 +28,7 @@ class SessionController @Inject()(authenticatedAction: AuthAction, repositorySer
 
   def cancel = authenticatedAction async {
     implicit request =>
-      repositoryService.cancel(request.user).map {
+      repositoryService.cancel(request.user.uid).map {
         _ => defaultRedirect
       }
   }

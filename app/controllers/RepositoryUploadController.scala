@@ -21,7 +21,7 @@ class RepositoryUploadController @Inject()(authenticatedAction: AuthAction, conf
 
   def upload = authenticatedAction {
       implicit request =>
-        Ok(views.html.repository.upload(request.user, request.error, request.log))
+        Ok(views.html.repository.upload(request.user.uid, request.error, request.log))
     }
 
 
@@ -39,7 +39,7 @@ class RepositoryUploadController @Inject()(authenticatedAction: AuthAction, conf
     val futuresM = mutable.MutableList[Future[List[Try[UploadStatus]]]]()
     utils.using(zip) {
       _.stream().forEach {
-        (f: ZipEntry) => futuresM += configurationService.process(f.getName, zip.getInputStream(f), request.user)
+        (f: ZipEntry) => futuresM += configurationService.process(f.getName, zip.getInputStream(f), request.user.uid)
       }
     }
     futuresM.toList
@@ -53,7 +53,7 @@ class RepositoryUploadController @Inject()(authenticatedAction: AuthAction, conf
             uploadedItem <- if (uploadedFile.filename.toLowerCase.endsWith(".zip"))
               readZipFile(uploadedFile)
             else
-              Seq(configurationService.process(uploadedFile.filename, new FileInputStream(uploadedFile.ref.path.toFile), request.user))
+              Seq(configurationService.process(uploadedFile.filename, new FileInputStream(uploadedFile.ref.path.toFile), request.user.uid))
           } yield uploadedItem
           Future.sequence(futures).map { r => uploadControllerIndex flashing ("log" -> collectLog(r)) }
         }

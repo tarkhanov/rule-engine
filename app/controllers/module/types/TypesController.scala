@@ -23,32 +23,32 @@ class TypesController @Inject()(authenticatedAction: AuthAction, typesService: T
       val rec = TypeRepositoryRec(0L, "", newTypeDefinition.name, serialize(newTypeDefinition))
 
       for {
-        created <- typesService.create(Some("new"), rec, request.user)
+        created <- typesService.create(Some("new"), rec, request.user.uid)
         result = Redirect(routes.TypesController.open(created))
       } yield result
   }
 
   def open(id: Long) = authenticatedAction async {
     implicit request =>
-      typesService.getRecordDetails(id, request.user).map {
+      typesService.getRecordDetails(id, request.user.uid).map {
         case Some(rec) =>
           val readOnly = !rec.actions.exists(_.action == Repository.CREATE_ACTION)
           val fields = TypeModelXML.readFields(scala.xml.XML.load(new StringReader(rec.record.definition)))
-          Ok(views.html.module.types.open(request.user, readOnly, rec, fields, request.flash.get("log")))
+          Ok(views.html.module.types.open(request.user.uid, readOnly, rec, fields, request.flash.get("log")))
         case None =>
-          NotFound(views.html.error.http404(request.user))
+          NotFound(views.html.error.http404(request.user.uid))
       }
   }
 
   def edit(id: Long) = authenticatedAction async {
     implicit request =>
       typesService.lookupId(id).flatMap {
-        case Some(current) => typesService.create(Some(current.seq), current, request.user)
+        case Some(current) => typesService.create(Some(current.seq), current, request.user.uid)
         case None => Future.failed(new IllegalStateException("Record not found"))
       }.map {
         rec => Redirect(routes.TypesController.open(rec))
       }.recover {
-        case _: IllegalStateException => NotFound(views.html.error.http404(request.user))
+        case _: IllegalStateException => NotFound(views.html.error.http404(request.user.uid))
       }
   }
 }

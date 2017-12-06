@@ -22,8 +22,8 @@ class RepositoryController @Inject()(authenticatedAction: AuthAction, repository
       val homeFolderAsNone = recordFolder.flatMap(f => if (f < 0) None else recordFolder)
 
       for {
-        items <- repositoryService.list(homeFolderAsNone, request.user, recordPageStart, recordPageSize)
-        result = Ok(views.html.repository.dashboard(request.user, items, recordPageStart + 1, recordPageSize, recordAllFilter, request.error, request.log))
+        items <- repositoryService.list(homeFolderAsNone, request.user.uid, recordPageStart, recordPageSize)
+        result = Ok(views.html.repository.dashboard(request.user.uid, items, recordPageStart + 1, recordPageSize, recordAllFilter, request.error, request.log))
           .sessionSet(recordFolder.isDefined, "repoFolder", recordFolder.getOrElse(0))
           .sessionSet(pageStart.isDefined, "repoPageStart", recordPageStart + 1)
           .sessionSet(pageSize.isDefined, "repoPageSize", recordPageSize)
@@ -34,7 +34,7 @@ class RepositoryController @Inject()(authenticatedAction: AuthAction, repository
 
   def remove(recordId: Long) = authenticatedAction async {
     implicit request =>
-      repositoryService.remove(Set(recordId), request.user).map {
+      repositoryService.remove(Set(recordId), request.user.uid).map {
         _ => defaultRedirect
       }.recover {
         case ex => defaultRedirect withError ex
@@ -46,9 +46,9 @@ class RepositoryController @Inject()(authenticatedAction: AuthAction, repository
 
       val historyPageStart = pageStart.orElse(sessionInt("historyPageStart")).map(_.max(1)).getOrElse(1) - 1
       val historyPageSize = pageSize.orElse(sessionInt("historyPageSize")).map(_.max(1).min(500)).getOrElse(20)
-      repositoryService.details(recordId, historyPageStart, historyPageSize, request.user).map {
+      repositoryService.details(recordId, historyPageStart, historyPageSize, request.user.uid).map {
         details =>
-          Ok(views.html.repository.sequence(request.user, details, historyPageStart + 1, historyPageSize))
+          Ok(views.html.repository.sequence(request.user.uid, details, historyPageStart + 1, historyPageSize))
             .sessionSet(pageStart.isDefined, "repoPageStart", historyPageStart + 1)
             .sessionSet(pageSize.isDefined, "repoPageSize", historyPageSize)
       }.recover {

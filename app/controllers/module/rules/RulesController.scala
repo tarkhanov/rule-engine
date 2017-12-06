@@ -17,29 +17,29 @@ class RulesController @Inject()(authenticatedAction: AuthAction, rules: RulesSer
 
   def create = authenticatedAction async {
     implicit request =>
-      rules.create(request.user).map {
+      rules.create(request.user.uid).map {
         rec => Redirect(routes.RulesController.open(rec))
       }
   }
 
   def open(id: Long) = authenticatedAction async {
     implicit request =>
-      rules.getRecordDetails(id, request.user).map {
+      rules.getRecordDetails(id, request.user.uid).map {
         case Some(rec) =>
           val readOnly = !rec.actions.exists(_.action == Repository.CREATE_ACTION)
           val definition = RulesModelXML.parse(rec.record.definition)
-          Ok(views.html.module.rules.open(request.user, readOnly, rec, definition, request.log))
+          Ok(views.html.module.rules.open(request.user.uid, readOnly, rec, definition, request.log))
         case None =>
-          NotFound(views.html.error.http404(request.user))
+          NotFound(views.html.error.http404(request.user.uid))
       }
   }
 
   def edit(id: Long) = authenticatedAction async {
     implicit request =>
-      rules.edit(id, request.user).map {
+      rules.edit(id, request.user.uid).map {
         rec => Redirect(routes.RulesController.open(rec))
       }.recover {
-        case _: RuleNotFound => NotFound(views.html.error.http404(request.user))
+        case _: RuleNotFound => NotFound(views.html.error.http404(request.user.uid))
       }
   }
 

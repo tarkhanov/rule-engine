@@ -14,8 +14,8 @@ object WebSecurity {
   type RequestBody = Map[String, Seq[String]]
 
   class TryAuthenticatedRequest[A, U](val user: Try[U], request: Request[A]) extends WrappedRequest[A](request)
-  class AuthenticatedRequest[A](val user: String, request: Request[A]) extends WrappedRequest[A](request)
-  class AuthenticatedRequestWS(val user: String, val request: RequestHeader)
+  class AuthenticatedRequest[A](val user: AuthenticatedUser, request: Request[A]) extends WrappedRequest[A](request)
+  class AuthenticatedRequestWS(val user: AuthenticatedUser, val request: RequestHeader)
 
   private val USER_SESSION_KEY = "user"
 
@@ -32,30 +32,38 @@ object WebSecurity {
     }
   }
 
+  def turnOut[A](option: Option[Future[A]])(implicit ec: ExecutionContext): Future[Option[A]] =
+    option.map(_.map(Some.apply)).getOrElse(Future.successful(None))
+
   private def authenticatedUser(request: RequestHeader) = request.session.get(USER_SESSION_KEY)
 
-  def authenticatedWS[R](block: AuthenticatedRequestWS => Future[R])
+  def authenticatedWS[R](authenticator: Authenticator)
+                        (block: AuthenticatedRequestWS => Future[R])
                         (request: RequestHeader)
                         (implicit ec: ExecutionContext): Future[Either[Results.Status, R]] = {
-    val authenticated = authenticatedUser(request)
-    if (authenticated.nonEmpty)
-      block(new AuthenticatedRequestWS(authenticated.get, request)).map(Right(_))
-    else
-      Future.successful(Left(Results.Forbidden))
+
+    turnOut(authenticatedUser(request).map(authenticator.validate)).map(_.flatten).flatMap {
+      case Some(authenticated) =>
+        block(new AuthenticatedRequestWS(authenticated, request)).map(Right(_))
+      case None =>
+        Future.successful(Left(Results.Forbidden))
+    }
   }
 
-  def authenticated[A](request: Request[A])
-                      (block: AuthenticatedRequest[A] => Future[Result]): Future[Result] = {
-    val authenticated = authenticatedUser(request)
-    if (authenticated.nonEmpty)
-      block(new AuthenticatedRequest(authenticated.get, request))
-    else {
-      val redirect = Results.TemporaryRedirect(Pages.loginPage.url)
-      val result = if (request.method == HttpVerbs.GET)
-        redirect.flashing("redirect" -> request.uri)
-      else
-        redirect
-      Future.successful(result)
+  def authenticated[A](request: Request[A], authenticator: Authenticator)
+                      (block: AuthenticatedRequest[A] => Future[Result])
+                      (implicit ec: ExecutionContext): Future[Result] = {
+
+    turnOut(authenticatedUser(request).map(authenticator.validate)).map(_.flatten).flatMap {
+      case Some(authenticated) =>
+        block(new AuthenticatedRequest(authenticated, request))
+      case None =>
+        val redirect = Results.TemporaryRedirect(Pages.loginPage.url)
+        val result = if (request.method == HttpVerbs.GET)
+          redirect.flashing("redirect" -> request.uri)
+        else
+          redirect
+        Future.successful(result)
     }
   }
 

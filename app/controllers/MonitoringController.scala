@@ -5,7 +5,7 @@ import javax.inject.Inject
 import akka.stream.scaladsl.Flow
 import com.typesafe.scalalogging.StrictLogging
 import controllers.MonitoringController.jsonResponseMessageFlowTransformer
-import controllers.security.{AuthAction, WebSecurity}
+import controllers.security.{AuthAction, Authenticator, WebSecurity}
 import play.api.http.websocket._
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.streams.AkkaStreams
@@ -33,16 +33,17 @@ object MonitoringController {
 }
 
 class MonitoringController @Inject()(AuthenticatedAction: AuthAction,
-                                     monitoringService: MonitoringService)
+                                     monitoringService: MonitoringService,
+                                     authenticator: Authenticator)
                                      extends InternationalInjectedController with StrictLogging {
 
   def monitoring = AuthenticatedAction {
     implicit request =>
-      Ok(views.html.monitoring.monitoring(request.user, request.error, request.log))
+      Ok(views.html.monitoring.monitoring(request.user.uid, request.error, request.log))
   }
 
   def wsMonitoring: WebSocket = WebSocket.acceptOrResult[Nothing, JsValue] {
-    WebSecurity.authenticatedWS { _ =>
+    WebSecurity.authenticatedWS(authenticator) { _ =>
       Future.successful(monitoringService.join())
     }
   }

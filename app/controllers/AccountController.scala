@@ -9,7 +9,7 @@ class AccountController @Inject()(authenticatedAction: AuthAction, userService: 
 
   def details = authenticatedAction {
     implicit request =>
-      Ok(views.html.account.account(request.user, request.log))
+      Ok(views.html.account.account(request.user.uid, request.log))
   }
 
 }

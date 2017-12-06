@@ -34,4 +34,8 @@ class AuthenticationService[UserType <: AuthenticatedUser] @Inject()(userService
       case None =>
         Failure(new UserNotFoundException("User not found"))
     }
+
+  override def validate(userId: String): Future[Option[UserType]] = {
+    userService.getUser(userId)
+  }
 }

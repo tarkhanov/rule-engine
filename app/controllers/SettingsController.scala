@@ -28,7 +28,7 @@ class SettingsController @Inject()(authenticatedAction: AuthAction, userService:
         users <- usersFuture
         countOfUsers <- userCountFuture
         userList = SettingsUserList(users, countOfUsers, usersPageStart + 1, usersPageSize)
-        result = Ok(views.html.settings.users(request.user, userList, request.log))
+        result = Ok(views.html.settings.users(request.user.uid, userList, request.log))
           .sessionSet(pageStart.isDefined, "usersPageStart", usersPageStart + 1)
           .sessionSet(pageSize.isDefined, "usersPageSize", usersPageSize)
       } yield result
